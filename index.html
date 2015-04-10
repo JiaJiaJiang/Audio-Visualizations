@@ -1,0 +1,406 @@
+<!-- 
+Copyright luojia@blog.luojia.me 
+Authorship reserved
+-->
+<meta charset="utf-8">
+<title>Web Audio Api demo</title>
+<canvas id="canvas"></canvas>
+<div id="sourceinput"><div id="msg">点我或拖进音乐喵！</div><input type="file" /></div>
+<div id="C">CopyRight luojia@blog.luojia.me</div>
+<style>
+body{
+	margin: 0px;
+	padding: 0px;
+}
+canvas{
+	position:fixed;
+	width:100%;
+	height:100%;
+}
+#sourceinput{
+  position: fixed;
+  font-family: "黑体","微软雅黑";
+  color: #BB5D5D;
+  border-radius: 0 0 11px 11px;
+  top: 0px;
+  width: 450px;
+  height: 40px;
+  left: calc(50% - 225px);
+  overflow: hidden;
+  border-radius: 0 0 12px 12px;
+}
+input,#msg{
+  position: absolute;
+  left: 0px;
+  background-color: rgba(12, 34, 81, 0.29);
+  width: 100%;
+  height: 100%;
+  border: none;
+  font-size: 29px;
+  text-align: center;
+  cursor: pointer;
+}
+input{
+	opacity: 0;
+}
+#C{
+	position: fixed;
+  width: 180px;
+  bottom: 0px;
+  left: calc(50% - 90px);
+  color: #fff;
+}
+#ctrl div{
+  background-color: rgba(232, 188, 188, 0.43);
+  font-size: 28px;
+  padding: 0 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+#ctrl div:hover{
+	 background-color: rgba(121, 134, 38, 0.43);;
+}
+</style>
+<script src="CanvasObjLibrary.js"></script>
+<script src="GraphLib.js"></script>
+<script>
+if(!window.AudioContext){
+	window.AudioContext = window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
+}
+
+if(!(Audio&&XMLHttpRequest&&AudioContext&&FileReader&&Uint8Array)){
+	document.write("您的浏览器无法正常查看此作品");
+}else{
+function clone(obj){
+	if(typeof(obj) != 'object') return obj;
+	if(obj == null) return obj;
+	var myNewObj ={};
+	for(var i in obj)
+		myNewObj[i] = clone(obj[i]);
+	return myNewObj;
+}
+function minus(origin,to,pre,speed){
+	var speed=speed||1;
+	return origin+(to-origin)*pre*speed;
+}
+function rand(min, max) {
+	return (min + Math.random() * (max - min)+0.5)|0;
+}
+var input=document.querySelector("input"),
+msg=document.querySelector("#msg");
+
+input.onchange=function(e){
+	msg.innerHTML="解码中";
+	 var fr = new FileReader();
+   	 fr.onload = function(e) {
+        var fileResult = e.target.result;
+       newmusicbuffer(fileResult);
+    };
+    fr.readAsArrayBuffer(input.files[0]);
+}
+
+
+var speed=1;
+/*var audio=new Audio();
+audio.autoplay="autoplay";
+audio.loop="loop";
+audio.src=input.value;*/
+var canvas=document.querySelector("canvas"); 
+//初始化图形库
+var COL=newCOL(canvas),Glib=getGraphlib(COL);;
+COL.setCanvas(canvas);
+COL.autoClear=true;
+COL.document.backgroundColor="rgb(247, 246, 242)";
+COL.document.drawtype="function";
+//COL.Debug.on();
+//COL.Debug.eleinfo=true;
+
+//初始宽高数据
+var w=window.innerWidth,h=window.innerHeight;
+var cr=(w>h?h:w)/2;
+//禁用右键菜单
+canvas.addEventListener("contextmenu",function(e){
+	e.preventDefault();
+});
+
+
+
+
+//波形层
+var wavelayer=COL.Graph.New();
+wavelayer.relativesize.width=1;
+wavelayer.relativesize.height=1;
+wavelayer.wavearray=new Uint8Array(512);
+wavelayer.drawfunction=function(ct){
+	if(wavelayer.wavearray){
+		var sum=0;
+		ct.beginPath();
+		ct.strokeStyle="rgba(52, 52, 52, 0.42)";
+		ct.lineWidth=2;
+		//ct.moveTo(1,COL.height/2);
+		for (var i = 0; i < wavelayer.wavearray.length; i++) {
+			if(wavelayer.wavearray[i]>128)sum+=wavelayer.wavearray[i];
+			ct.lineTo(COL.width/wavelayer.wavearray.length*(i+1),(wavelayer.wavearray[i]-128)/2+COL.height/2);
+		}
+		ct.stroke();
+		//Debugwave.height=sum/512;
+	}
+	
+}
+COL.document.addChild(wavelayer);
+
+
+//两边的小圆
+var sidecircletemple=Glib.getGraphObj("arc",{r:cr*0.39,fillColor:"rgba(102, 102, 102, 0.4)",anticlockwise:false});
+sidecircletemple.relativerotatecenter.x=0.5;
+sidecircletemple.relativerotatecenter.y=0.5;
+sidecircletemple.relativepositionpoint.x=0.5;
+sidecircletemple.relativepositionpoint.y=0.5;
+var sidecirclearr=[];
+(function(){
+	//var 
+	for(var i=0;i<4;i++){
+		sidecirclearr[i]=sidecircletemple.New(true);
+		sidecirclearr[i].zoom={x:1,y:1};
+		COL.document.addChild(sidecirclearr[i]);
+	}
+})();
+sidecirclearr[1].relativeposition={x:1,y:0};
+sidecirclearr[2].relativeposition={x:0,y:1};
+sidecirclearr[3].relativeposition={x:1,y:1};
+
+//星星层
+var starlayer=COL.Graph.New();
+starlayer.relativesize.width=1;
+starlayer.relativesize.height=1;
+starlayer.needsort=false;
+COL.document.addChild(starlayer);
+
+//圆圈框架
+var circleframe=COL.Graph.New();
+circleframe.zoom.x=0.86;
+circleframe.zoom.y=0.86;
+circleframe.relativesize.width=1;
+circleframe.relativesize.height=1;
+circleframe.relativerotatecenter.x=0.5;
+circleframe.relativerotatecenter.y=0.5;
+circleframe.relativeposition.x=0.5;
+circleframe.relativeposition.y=0.5;
+circleframe.relativepositionpoint.x=0.5;
+circleframe.relativepositionpoint.y=0.5;
+COL.document.addChild(circleframe);
+
+//频率条框架
+var pinlvbarframe=COL.Graph.New({width:0,height:0});
+pinlvbarframe.relativeposition.x=0.5;
+pinlvbarframe.relativeposition.y=0.5;
+pinlvbarframe.rotate=45;
+circleframe.addChild(pinlvbarframe);
+
+//后方黑圆
+var backcircle=Glib.getGraphObj("arc",{r:cr*0.86,fillColor:"#000",anticlockwise:false,opacity:0.5});
+backcircle.relativeposition.x=0.5;
+backcircle.relativeposition.y=0.5;
+backcircle.relativepositionpoint.x=0.5;
+backcircle.relativepositionpoint.y=0.5;
+backcircle.relativerotatecenter.x=0.5;
+backcircle.relativerotatecenter.y=0.5;
+circleframe.addChild(backcircle);
+
+var framezoominterval;//整体框架缩放定时器
+
+//coding圆圈
+var codingcircle=Glib.getGraphObj("arc",{r:cr*0.75,fillColor:"#fafafa",anticlockwise:false,borderWidth:cr*0.08,borderColor:"#353535"});
+circleframe.addChild(codingcircle);
+COL.Graph.Eventable(codingcircle);
+codingcircle.relativeposition.x=0.5;
+codingcircle.relativeposition.y=0.5;
+codingcircle.relativepositionpoint.x=0.5;
+codingcircle.relativepositionpoint.y=0.5;
+codingcircle.relativerotatecenter.x=0.5;
+codingcircle.relativerotatecenter.y=0.5;
+codingcircle.addEvent("mouseover",function(){
+	if(framezoominterval)clearInterval(framezoominterval);
+	framezoominterval=setInterval(function(){
+		//circleframe.zoom.x=circleframe.zoom.y=circleframe.zoom.x+(0.86+0.05-circleframe.zoom.x)*0.5*speed;
+		circleframe.zoom.x=circleframe.zoom.y=minus(circleframe.zoom.x,0.86+0.05,0.5,speed);
+		if(circleframe.zoom.x>=0.86+0.04){
+			clearInterval(framezoominterval);
+			framezoominterval=0;
+		}
+	},1000/30);
+});
+codingcircle.addEvent("mouseout",function(){
+	if(framezoominterval)clearInterval(framezoominterval);
+	framezoominterval=setInterval(function(){
+		circleframe.zoom.x=circleframe.zoom.y=circleframe.zoom.x+(0.86-circleframe.zoom.x)*0.5*speed;
+		if(circleframe.zoom.x<=0.86+0.01){
+			circleframe.setZoom(0.86,0.86);
+			clearInterval(framezoominterval);
+			framezoominterval=0;
+		}
+	},1000/30);
+});
+
+//Coding
+var text=COL.Graph.NewTextObj("Coding",cr*0.36,{color:"#353535",fontWeight:600});
+text.relativeposition.x=0.5;
+text.relativeposition.y=0.5;
+text.relativepositionpoint.x=0.5;
+text.relativepositionpoint.y=0.5;
+codingcircle.addChild(text);
+//text.realtimeVary=true;//实时渲染缩放文字会锯齿，已禁用
+
+
+//星星模板
+var startemplate=Glib.getGraphObj("star",{r:cr*0.026,color:"#000"});
+function a_star(){
+	this.g=startemplate.New();
+	this.g.opacity=1;
+	this.g.x=[rand(0,cr*0.8),rand(COL.width-cr*0.8,COL.width)][rand(0,1)];
+	this.g.y=[rand(0,cr*0.8),rand(COL.height-cr*0.8,COL.height)][rand(0,1)];
+	this.dera=[1,-1][rand(0,1)];
+	starlayer.addChild(this.g);
+	this.time=setInterval(a_star_fun,1000/30,this);
+}
+var a_star_fun=function(t){
+	t.g.opacity=minus(t.g.opacity,0,0.03);
+	if(t.g.opacity<=0.01){
+		clearInterval(t.time);
+		COL.Graph.Delete(t.g);
+		return;
+	}
+	t.g.rotate=minus(t.g.rotate,t.g.rotate-8*t.dera,0.5);
+}
+
+var array= new Uint8Array(640),averagepinlv=0;
+var valley=0,laststat=false,heavyrecord=0;
+var cturn=[0.6,0.4,0.2];
+function changecolor(){
+	cturn.push(cturn.shift());
+}
+function beforedraw(){//绘制前处理函数
+	averagepinlv=0;
+	if(!redzoominterval){
+		codingcircle.zoom.x=codingcircle.zoom.y=minus(codingcircle.zoom.x,1,0.08,speed);
+	}
+	backcircle.zoom.x=backcircle.zoom.y=minus(backcircle.zoom.x,codingcircle.zoom.x,0.05,speed);
+	if(analyser){
+		analyser.getByteFrequencyData(array);
+		var tmpavgpinlv=0;
+		heavyrecord=(array[3]+array[4]+array[5])/3;
+		for(var iplc=pinlvbar.length;iplc--;){
+			var a=pinlvbar[iplc];
+			if(iplc<4&&sidecirclearr){
+				var pre=array[iplc*5]/255,co=pre*255/0.564;
+				sidecirclearr[iplc].zoom.x=sidecirclearr[iplc].zoom.y=1+pre*0.2;
+				sidecircletemple.fillColor="rgba("+((co*cturn[0]+0.5)|0)+","+((co*cturn[1]+0.5)|0)+","+((co*cturn[2]+0.5)|0)+","+pre*0.6+")";
+			}
+			if(iplc>=59)tmpavgpinlv+=array[iplc*5];
+			a.height=minus(a.height,0,0.06*speed);
+			if(a.height<array[iplc*5]-100)a.height=array[iplc*5]*1.3;
+		}
+		averagepinlv=tmpavgpinlv/69*0.8+heavyrecord*1.5;
+		if(averagepinlv>valley+17){
+			valley=averagepinlv;
+			suo();changecolor();
+		}else{
+			if(valley>0)valley-=0.1;
+		}
+		if(averagepinlv<valley){valley=averagepinlv;}
+	}
+}
+
+
+var redzoominterval;
+//中央圆圈缩进
+function suo(){
+	if(codingcircle.zoom.x<=0.938){
+		return;
+	}
+	if(redzoominterval)clearInterval(redzoominterval);
+	redzoominterval=setInterval(function(){
+		codingcircle.zoom.x=codingcircle.zoom.y=minus(codingcircle.zoom.x,0.93,0.6*speed);
+		if(codingcircle.zoom.x<=0.935){
+			clearInterval(redzoominterval);
+			redzoominterval=0;
+		}
+	},1000/30);
+	new a_star();
+}
+
+
+//频率条模板
+var pinlvbartemple=COL.Graph.New({width:codingcircle.r*2*3.141592653/138,height:500,y:codingcircle.r,backgroundColor:"rgba(78, 145, 245, 0.29)"});
+pinlvbartemple.relativerotatecenter.x=0.5;
+pinlvbartemple.relativepositionpoint.x=0.5;
+pinlvbartemple.rotatecenter.y=-codingcircle.r;
+//生成128个频率条
+var pinlvbar=[];
+for(var i=0;i<128;i++){
+	pinlvbar[i]=pinlvbartemple.New(true);
+	pinlvbar[i].rotate=360/128*i;
+	pinlvbarframe.addChild(pinlvbar[i]);
+}
+
+//若无歌曲且在前台，就定时打节奏
+setInterval(function(){
+	if(!document.hidden&&!audioBufferSouceNode.buffer)suo();
+},1100);
+
+
+
+
+//音频上下文
+var audioCtx = new AudioContext();
+var audioBufferSouceNode = audioCtx.createBufferSource();
+audioBufferSouceNode.connect(audioCtx.destination);
+var analyser = audioCtx.createAnalyser();
+audioBufferSouceNode.connect(analyser);
+audioBufferSouceNode.start(0);
+analyser.connect(audioCtx.destination);
+function newmusicbuffer(buff){
+	 audioCtx.decodeAudioData(buff, function(buffer) {
+          audioBufferSouceNode.buffer = buffer;
+		audioBufferSouceNode.loop="loop";
+		msg.innerHTML="正在播放";
+        }, function(e) {
+            msg.innerHTML="无法解码";
+        });
+}
+
+
+//以较低频率定时获取波形
+setInterval(function(){
+	analyser.getByteTimeDomainData(wavelayer.wavearray);
+},1000/50);
+
+
+(function draw(){
+	requestAnimationFrame(draw);//预订动画帧
+	beforedraw();//执行绘制前函数
+	COL.draw();//绘制
+})();
+
+}
+
+//处理窗口变化时部件的动作
+window.addEventListener("resize",function(){
+	w=window.innerWidth;
+	h=window.innerHeight;
+	COL.adjustcanvas(w,h);
+	cr=(w>h?h:w)/2;
+	codingcircle.setR(cr*0.75);
+	codingcircle.borderWidth=cr*0.08;
+	backcircle.setR(cr*0.86);
+	startemplate.r=cr*0.026;
+	pinlvbartemple.y=codingcircle.r;
+	pinlvbartemple.rotatecenter.y=-codingcircle.r;
+	pinlvbartemple.width=codingcircle.r*2*3.141592653/138;
+	text.lineHeight = text.fontSize=cr*0.36;
+	text.prepareText();
+	sidecircletemple.r=cr*0.39;
+	sidecircletemple.width=sidecircletemple.height=cr*0.39*2;
+});
+
+</script>
