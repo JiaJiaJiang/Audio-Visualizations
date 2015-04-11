@@ -359,7 +359,17 @@ setInterval(function(){
 	if(!document.hidden&&!audioBufferSouceNode.buffer)suo();
 },1100);
 
-
+(function(){
+	var dir=0.09;
+	codingcircle.rotate=0;
+	setInterval(function(){
+		if(audioBufferSouceNode.buffer){
+			codingcircle.rotate+=dir;
+			if(codingcircle.rotate>10)dir=-0.09;
+			if(codingcircle.rotate<-10)dir=0.09;
+		}
+	},70);
+})();
 
 
 //音频上下文
