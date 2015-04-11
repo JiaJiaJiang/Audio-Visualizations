@@ -387,9 +387,9 @@ var audioCtx = new AudioContext();
 var analyser = audioCtx.createAnalyser();
 var audioBufferSouceNode = audioCtx.createBufferSource();
 audioBufferSouceNode.connect(audioCtx.destination);
-//audioBufferSouceNode.connect(analyser);
+audioBufferSouceNode.connect(analyser);
 audioBufferSouceNode.start(0);
-analyser.connect(audioCtx.destination);
+//analyser.connect(audioCtx.destination);
 function newmusicbuffer(buff){
 	 audioCtx.decodeAudioData(buff, function(buffer) {
           audioBufferSouceNode.buffer = buffer;
