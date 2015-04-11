@@ -63,6 +63,7 @@ function newCOL() {
 				COL.mouseY = null;
 				if (COL.onoverElement) {
 					var eve =new COL.event();
+					eve.target=COL.onoverElement;
 					COL.onoverElement.fireEvent("mouseout", eve);
 				}
 				COL.onoverElement = null;
