@@ -38,3 +38,13 @@ Coding参赛作品
 1. CanvasObjectLibrary.js 自制canvas库
 2. GraphLib.js COL的外挂简易图形库
 3. index.html 项目代码
+
+###介绍一下如何把它玩坏(控制台里输入以下东西)
+* COL.autoClear=false
+* COL.Debug.on();COL.Debug.eleinfo=true;
+* speed=5
+* text.zoom.x=-1;
+* text.zoom.y=2;
+* cr=2000;
+* audioBufferSouceNode.stop();
+* clearInterval(cctm);setInterval(function(){codingcircle.rotate+=50;},20);
