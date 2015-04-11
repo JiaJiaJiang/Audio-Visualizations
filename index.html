@@ -387,6 +387,7 @@ function newmusicbuffer(buff){
 		msg.innerHTML="正在播放";
         }, function(e) {
             msg.innerHTML="无法解码";
+            console.log(e);
         });
 }
 
