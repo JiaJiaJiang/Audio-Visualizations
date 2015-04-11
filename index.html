@@ -158,12 +158,21 @@ sidecircletemple.relativerotatecenter.x=0.5;
 sidecircletemple.relativerotatecenter.y=0.5;
 sidecircletemple.relativepositionpoint.x=0.5;
 sidecircletemple.relativepositionpoint.y=0.5;
+
 var sidecirclearr=[];
 (function(){
 	//var 
 	for(var i=0;i<4;i++){
 		sidecirclearr[i]=sidecircletemple.New(true);
 		sidecirclearr[i].zoom={x:1,y:1};
+		sidecirclearr[i].offsetzoom=0;
+		COL.Graph.Eventable(sidecirclearr[i]);
+		sidecirclearr[i].addEvent("mouseover",function(e){
+			if(e.target)e.target.offsetzoom=0.6;
+		});
+		sidecirclearr[i].addEvent("mouseout",function(e){
+			if(e.target)e.target.offsetzoom=0;
+		});
 		COL.document.addChild(sidecirclearr[i]);
 	}
 })();
@@ -224,9 +233,8 @@ codingcircle.relativerotatecenter.y=0.5;
 codingcircle.addEvent("mouseover",function(){
 	if(framezoominterval)clearInterval(framezoominterval);
 	framezoominterval=setInterval(function(){
-		//circleframe.zoom.x=circleframe.zoom.y=circleframe.zoom.x+(0.86+0.05-circleframe.zoom.x)*0.5*speed;
-		circleframe.zoom.x=circleframe.zoom.y=minus(circleframe.zoom.x,0.86+0.05,0.5,speed);
-		if(circleframe.zoom.x>=0.86+0.04){
+		circleframe.zoom.x=circleframe.zoom.y=minus(circleframe.zoom.x,0.86+0.08,0.5,speed);
+		if(circleframe.zoom.x>=0.86+0.07){
 			clearInterval(framezoominterval);
 			framezoominterval=0;
 		}
@@ -295,7 +303,7 @@ function beforedraw(){//绘制前处理函数
 			var a=pinlvbar[iplc];
 			if(iplc<4&&sidecirclearr){
 				var pre=array[iplc*5]/255,co=pre*255/0.564;
-				sidecirclearr[iplc].zoom.x=sidecirclearr[iplc].zoom.y=1+pre*0.2;
+				sidecirclearr[iplc].zoom.x=sidecirclearr[iplc].zoom.y=1+pre*0.2+sidecirclearr[iplc].offsetzoom;
 				sidecircletemple.fillColor="rgba("+((co*cturn[0]+0.5)|0)+","+((co*cturn[1]+0.5)|0)+","+((co*cturn[2]+0.5)|0)+","+pre*0.6+")";
 			}
 			if(iplc>=59)tmpavgpinlv+=array[iplc*5];
