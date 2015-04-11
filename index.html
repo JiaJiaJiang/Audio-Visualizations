@@ -299,18 +299,21 @@ function beforedraw(){//绘制前处理函数
 		analyser.getByteFrequencyData(array);
 		var tmpavgpinlv=0;
 		heavyrecord=(array[3]+array[4]+array[5])/3;
+		var pre,co;
 		for(var iplc=pinlvbar.length;iplc--;){
 			var a=pinlvbar[iplc];
 			if(iplc<4&&sidecirclearr){
-				var pre=array[iplc*5]/255,co=pre*255/0.564;
+				pre=array[iplc*5]/255;
+				co=pre*255/0.564;
 				sidecirclearr[iplc].zoom.x=sidecirclearr[iplc].zoom.y=1+pre*0.2+sidecirclearr[iplc].offsetzoom;
-				sidecircletemple.fillColor="rgba("+((co*cturn[0]+0.5)|0)+","+((co*cturn[1]+0.5)|0)+","+((co*cturn[2]+0.5)|0)+","+pre*0.6+")";
-				pinlvbartemple.backgroundColor="rgba("+(255-(co*cturn[0]+0.5)|0)+","+(255-(co*cturn[1]+0.5)|0)+","+(255-(co*cturn[2]+0.5)|0)+",0.6)";
 			}
 			if(iplc>=59)tmpavgpinlv+=array[iplc*5];
 			a.height=minus(a.height,0,0.06*speed);
 			if(a.height<array[iplc*5]-100)a.height=array[iplc*5]*cr/255;
 		}
+		sidecircletemple.fillColor="rgba("+((co*cturn[0]+0.5)|0)+","+((co*cturn[1]+0.5)|0)+","+((co*cturn[2]+0.5)|0)+","+pre*0.6+")";
+		pinlvbartemple.backgroundColor="rgba("+(255-(co*cturn[0]+0.5)|0)+","+(255-(co*cturn[1]+0.5)|0)+","+(255-(co*cturn[2]+0.5)|0)+",0.6)";
+
 		averagepinlv=tmpavgpinlv/69*0.8+heavyrecord*1.5;
 		if(averagepinlv>valley+17){
 			valley=averagepinlv;

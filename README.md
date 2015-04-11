@@ -1,4 +1,6 @@
 #Audio-Visualizations
+--------
+这是一个使用Web Audio API的音乐可视化演示
 
 #####此项目由一个月前我闲时做一个简易的演示修改而来
 Coding参赛作品
@@ -29,3 +31,8 @@ Coding参赛作品
 1. IE
 2. Opera
 3. 不知道
+
+##文件说明
+1. CanvasObjectLibrary.js 自制canvas库
+2. GraphLib.js COL的外挂简易图形库
+3. index.html 项目代码
