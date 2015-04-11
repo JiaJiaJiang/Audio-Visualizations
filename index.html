@@ -384,10 +384,10 @@ for(var i=0;i<128;i++){
 
 //音频上下文
 var audioCtx = new AudioContext();
+var analyser = audioCtx.createAnalyser();
 var audioBufferSouceNode = audioCtx.createBufferSource();
 audioBufferSouceNode.connect(audioCtx.destination);
-var analyser = audioCtx.createAnalyser();
-audioBufferSouceNode.connect(analyser);
+//audioBufferSouceNode.connect(analyser);
 audioBufferSouceNode.start(0);
 analyser.connect(audioCtx.destination);
 function newmusicbuffer(buff){
