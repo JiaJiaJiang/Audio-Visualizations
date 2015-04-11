@@ -41,10 +41,11 @@ Coding参赛作品
 
 ###介绍一下如何把它玩坏(控制台里输入以下东西)
 * COL.autoClear=false
-* COL.Debug.on();COL.Debug.eleinfo=true;
+* COL.Debug.on();COL.Debug.eleinfo=true; //体现电脑配置的时候到了
 * speed=5
 * text.zoom.x=-1;
 * text.zoom.y=2;
 * cr=2000;
 * audioBufferSouceNode.stop();
 * clearInterval(cctm);setInterval(function(){codingcircle.rotate+=50;},20);
+* sidecircletemple.setR(400)

@@ -328,9 +328,9 @@ function beforedraw(){//绘制前处理函数
 		if(averagepinlv>valley+17){
 			valley=averagepinlv;
 			suo();changecolor();
-		}else{
+		}/*else{
 			if(valley>0)valley-=0.1;
-		}
+		}*/
 		if(averagepinlv<valley){valley=averagepinlv;}
 	}
 }
