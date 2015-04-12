@@ -184,7 +184,7 @@ var playmodesvg=document.querySelector("#playmode svg");
 var input=document.querySelector("input"),
 msg=document.querySelector("#msg");
 
-if(setmode)setmode(0);
+if(window.setmode)setmode(0);
 var filelist=[],playingid=0,playlist=[];
 input.onchange=function(e){
 	if(window.MozMmsEvent){
