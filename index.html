@@ -94,8 +94,8 @@ input{
 #controls{
   position: absolute;
   background-color: inherit;
-  width: 294px;
-  left: calc(50% - 147px);
+  width: 326px;
+  left: calc(50% - 163px);
   height: 40px;
   border-radius: 8px 8px 0 0;
   bottom: 100%;
@@ -542,7 +542,7 @@ for(var i=0;i<128;i++){
 	var dir=0.09;
 	codingcircle.rotate=0;
 	window.cctm=setInterval(function(){
-		if(meAudioSourceNode.buffer){
+		if(!audio.paused){
 			codingcircle.rotate+=dir;
 			if(codingcircle.rotate>10)dir=-0.09;
 			if(codingcircle.rotate<-10)dir=0.09;
