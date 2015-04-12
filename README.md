@@ -13,7 +13,6 @@ Coding参赛作品
 
 打开演示后点击顶部的按钮选择音乐文件，或者把音乐文件拖放到按钮上。
 
-解码完成后即可开始运作。歌曲将循环播放。
 
 查看自制Debug:在控制台执行`COL.Debug.on()` ，关闭Debug: `COL.Debug.off()` 。
 
@@ -31,8 +30,9 @@ Coding参赛作品
 #不支持的浏览器
 
 1. IE
-2. Opera
-3. 不知道
+2. 不知道
+
+由于FireFox严格的安全机制，此演示在其中将回滚到旧版本的形态。（不同于在Chrome和Opera中的效果）
 
 ##文件说明
 1. CanvasObjectLibrary.js 自制canvas库
