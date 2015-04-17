@@ -52,6 +52,5 @@
 * text.zoom.x=-1;
 * text.zoom.y=2;
 * cr=2000;
-* audioBufferSouceNode.stop();
 * clearInterval(cctm);setInterval(function(){codingcircle.rotate+=50;},20);
 * sidecircletemple.setR(400)
