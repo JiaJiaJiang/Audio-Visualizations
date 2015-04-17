@@ -3,7 +3,8 @@
 这是一个使用Web Audio API的音乐可视化演示
 
 #####此项目由一个月前我闲时做一个简易的演示修改而来
-Coding参赛作品
+###Coding参赛作品,[这里是投票地址](https://coding.net/event/html5/vote?page=1#http:%2F%2Faudio-visualization.coding.io)
+####演示地址：[http://audio-visualization.coding.io/](http://audio-visualization.coding.io/)
 
 #全屏观看效果更佳！
 
@@ -18,9 +19,7 @@ Coding参赛作品
 
 ###注意
 
-1. 不建议换歌，因为FF和Chrome对相关API的处理方式不同而会造成不同的结果。
-
-2. 部分旧版本chrome和opera在一些机器上渲染效果会出现问题，如果你看到了类似升阳战旗的东西，请更新浏览器。
+* 部分旧版本chrome和opera在一些机器上渲染效果会出现问题，如果你看到了类似升阳战旗的东西，请更新浏览器。
 
 ####使用的库
 
@@ -32,12 +31,19 @@ Coding参赛作品
 1. IE
 2. 不知道
 
-由于FireFox严格的安全机制，此演示在其中将回滚到旧版本的形态。（不同于在Chrome和Opera中的效果）
 
 ##文件说明
 1. CanvasObjectLibrary.js 自制canvas库
 2. GraphLib.js COL的外挂简易图形库
 3. index.html 项目代码
+
+##使用的HTML5有关API
+* WebSocket
+* URL API
+* Canvas系列API
+* AudioContext系列API
+* Audio
+
 
 ###介绍一下如何把它玩坏(控制台里输入以下东西)
 * COL.autoClear=false

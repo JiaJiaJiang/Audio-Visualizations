@@ -5,19 +5,18 @@ Authorship reserved
 <meta charset="utf-8">
 <title>Web Audio Api demo</title>
 <canvas id="canvas"></canvas>
-<div id="sourceinput"><div id="msg" style="font-size: 29px;">点我或拖进音乐喵！</div><input type="file" multiple /></div>
-<!-- <audio id="audio" src="http://localhost:65230/xueyuehua.mp3" controls="controls" autoplay="autoplay"></audio> -->
+<div id="sourceinput" style="opacity:1;"><div id="msg" style="font-size: 29px;">点我或拖进音乐喵！</div><input type="file" multiple /></div>
 
 <!-- 播放列表 -->
-<div id="playlist">
+<div id="playlist"  style="opacity:1;">
 	<div id="controls">
-		<div id="pre"><svg width="40.0px" height="40.0px"><polyline fill="#fff" points="30.11111,5.2222223 11.732024,20.99673 30.555555,34.96732 30.408497,4.9673195" stroke-linejoin="round" stroke-linecap="round" stroke="#fff"/><line stroke-linecap="round" fill="none" x1="10.555555" x2="10.555555" y1="5.261437" y2="35.555557" stroke="#fff"stroke-width="3"/></svg></div>
-		<div id="play"><svg width="40.0px" height="40.0px"><polyline fill="#fff" transform="matrix(-1.0 0.0 -0.0 -1.0 42.28758 39.93464)" points="30.444445,5.111111 12.065357,20.88562 30.88889,34.85621 30.74183,4.8562083" stroke-linejoin="round" stroke-linecap="round" stroke="#fff"/></svg></div>
-		<div id="pause"><svg width="40.0px" height="40.0px"><line stroke-linecap="round" transform="matrix(-1.0 0.0 -0.0 -1.0 41.11111 40.522877)" fill="none" x1="14.111108"
+		<div id="pre" style="left: 0px;"><svg width="40.0px" height="40.0px"><polyline fill="#fff" points="30.11111,5.2222223 11.732024,20.99673 30.555555,34.96732 30.408497,4.9673195" stroke-linejoin="round" stroke-linecap="round" stroke="#fff"/><line stroke-linecap="round" fill="none" x1="10.555555" x2="10.555555" y1="5.261437" y2="35.555557" stroke="#fff"stroke-width="3"/></svg></div>
+		<div id="play" style="left: 40px;"><svg width="40.0px" height="40.0px"><polyline fill="#fff" transform="matrix(-1.0 0.0 -0.0 -1.0 42.28758 39.93464)" points="30.444445,5.111111 12.065357,20.88562 30.88889,34.85621 30.74183,4.8562083" stroke-linejoin="round" stroke-linecap="round" stroke="#fff"/></svg></div>
+		<div id="pause" style="left: 80px;"><svg width="40.0px" height="40.0px"><line stroke-linecap="round" transform="matrix(-1.0 0.0 -0.0 -1.0 41.11111 40.522877)" fill="none" x1="14.111108"
         x2="14.111115" y1="7.8169928" y2="32.300655" stroke="#fff" stroke-width="8"/><line stroke-linecap="round" transform="matrix(-1.0 0.0 0.0 -1.0 41.11111 40.522877)" fill="none" x1="27.999985" x2="27.999992" y1="7.8169928" y2="32.300655" stroke="#fff" stroke-width="8"/></svg></div>
-		<div id="next"><svg width="40.0px" height="40.0px"><polyline fill="#fff" transform="matrix(-1.0 0.0 -0.0 -1.0 41.11111 40.522877)" points="30.11111,5.2222223 11.732024,20.99673 30.555555,34.96732 30.408497,4.9673195" stroke-linejoin="round" stroke-linecap="round" stroke="#fff"/><line stroke-linecap="round" transform="matrix(-1.0 0.0 -0.0 -1.0 41.11111 40.522877)" fill="none" x1="10.555555"x2="10.555555" y1="5.261437" y2="35.555557" stroke="#fff" stroke-width="3"/></svg></div>
-		<div id="playmode"><svg width="40.0px" height="40.0px"></svg></div>
-		<div id="songlist"><svg width="40.0px" height="40.0px"><line stroke-linecap="round" fill="none" x1="7.4444447" x2="32.333332" y1="11.111111" y2="11.111111" stroke="#fff" stroke-width="6"/><line stroke-linecap="round" fill="none" x1="7.3333335" x2="32.22222" y1="20.222225" y2="20.222225" stroke="#fff" stroke-width="6"/><line stroke-linecap="round" fill="none" x1="7.4444447" x2="32.333332" y1="29.555557" y2="29.555557" stroke="#fff" stroke-width="6"/></svg></div>
+		<div id="next" style="left: 120px;"><svg width="40.0px" height="40.0px"><polyline fill="#fff" transform="matrix(-1.0 0.0 -0.0 -1.0 41.11111 40.522877)" points="30.11111,5.2222223 11.732024,20.99673 30.555555,34.96732 30.408497,4.9673195" stroke-linejoin="round" stroke-linecap="round" stroke="#fff"/><line stroke-linecap="round" transform="matrix(-1.0 0.0 -0.0 -1.0 41.11111 40.522877)" fill="none" x1="10.555555"x2="10.555555" y1="5.261437" y2="35.555557" stroke="#fff" stroke-width="3"/></svg></div>
+		<div id="playmode" style="left: 160px;"><svg width="40.0px" height="40.0px"></svg></div>
+		<div id="songlist" style="left: 200px;"><svg width="40.0px" height="40.0px"><line stroke-linecap="round" fill="none" x1="7.4444447" x2="32.333332" y1="11.111111" y2="11.111111" stroke="#fff" stroke-width="6"/><line stroke-linecap="round" fill="none" x1="7.3333335" x2="32.22222" y1="20.222225" y2="20.222225" stroke="#fff" stroke-width="6"/><line stroke-linecap="round" fill="none" x1="7.4444447" x2="32.333332" y1="29.555557" y2="29.555557" stroke="#fff" stroke-width="6"/></svg></div>
 	</div>
 	<div id="list">
 		<div></div><br>
@@ -51,6 +50,7 @@ canvas{
   background-color: rgba(12, 34, 81, 0.29);
   left: calc(50% - 225px);
   overflow: hidden;
+  transition:opacity 0.5s;
 }
 input,#msg{
     position: absolute;
@@ -81,7 +81,7 @@ input{
 	 background-color: rgba(121, 134, 38, 0.43);;
 }
 #playlist{
-	transition: bottom 0.2s;
+	transition: bottom 0.2s,opacity 0.5s;
   height: 240px;
   background-color: rgba(92, 90, 90, 0.49);
   width: 100%;
@@ -109,6 +109,7 @@ input{
   white-space: nowrap;
 }
 #controls div{
+	position: absolute;
 	display: inline-block;
 	height: 40px;
 	width: 40px;
@@ -144,12 +145,13 @@ input{
 <script>
 
 var playmodesvgs={
-	"顺序":'<line stroke-linecap="round" fill="none" x1="7.7777777" x2="31.777779" y1="19.777779" y2="19.777779" stroke="#fff" stroke-width="5"/><line stroke-linecap="round" fill="none" x1="20.88889" x2="31.88889" y1="8.555555" y2="19.555555" stroke="#fff" stroke-width="5"/><line stroke-linecap="round" fill="none" x1="21.666664" x2="31.777779" y1="31.14384" y2="19.999998" stroke="#fff" stroke-width="5"/>',
-	"单曲循环":'<rect x="7.111111" y="7.2222223" fill="none" width="25.777779" stroke-linejoin="round" height="25.777779" stroke="#fff" stroke-width="3"/><polyline fill="none" stroke-width="3" points="20.222221,27.333334 20.222221,13.111111 15.666667,17.666666" stroke-linejoin="round" stroke-linecap="round" stroke="#fff"/>',
-	"随机":'<polyline fill="none" stroke-width="3" points="4.6666656,28.333334 21.56118,11.438817 36.04219,11.438817" stroke-linecap="round" stroke="#fff"/><polyline fill="none" stroke-width="3" transform="matrix(1.0 0.0 0.0 -0.9047619 0.0 56.296295)" points="5.0689154,48.98653 21.963428,32.09201 36.444443,32.09201" stroke-linecap="round" stroke="#fff"/>',
-	"列表循环":'<rect x="7.111111" y="7.2222223" fill="none" width="25.777779" stroke-linejoin="round" height="25.777779" stroke="#fff" stroke-width="3"/><line stroke-linecap="round" fill="none" x1="13.111112" x2="26.88889" y1="20.222223" y2="20.222223" stroke="#fff" stroke-width="3"/><line stroke-linecap="round" fill="none" x1="13.111112" x2="26.88889" y1="13.888889" y2="13.888889" stroke="#fff" stroke-width="3"/><line stroke-linecap="round" fill="none" x1="13.111112" x2="26.88889" y1="26.222221" y2="26.222221" stroke="#fff" stroke-width="3"/>',
+	"顺序":'<line stroke-linecap="round" fill="none" x1="7.7777777" x2="31.777779" y1="19.777779" y2="19.777779" stroke="#fff" stroke-width="5"></line><line stroke-linecap="round" fill="none" x1="20.88889" x2="31.88889" y1="8.555555" y2="19.555555" stroke="#fff" stroke-width="5"></line><line stroke-linecap="round" fill="none" x1="21.666664" x2="31.777779" y1="31.14384" y2="19.999998" stroke="#fff" stroke-width="5"></line>',
+	"单曲循环":'<rect x="7.111111" y="7.2222223" fill="none" width="25.777779" stroke-linejoin="round" height="25.777779" stroke="#fff" stroke-width="3"></rect><polyline fill="none" stroke-width="3" points="20.222221,27.333334 20.222221,13.111111 15.666667,17.666666" stroke-linejoin="round" stroke-linecap="round" stroke="#fff"></polyline>',
+	"随机":'<polyline fill="none" stroke-width="3" points="4.6666656,28.333334 21.56118,11.438817 36.04219,11.438817" stroke-linecap="round" stroke="#fff"></polyline><polyline fill="none" stroke-width="3" transform="matrix(1.0 0.0 0.0 -0.9047619 0.0 56.296295)" points="5.0689154,48.98653 21.963428,32.09201 36.444443,32.09201" stroke-linecap="round" stroke="#fff"></polyline>',
+	"列表循环":'<rect x="7.111111" y="7.2222223" fill="none" width="25.777779" stroke-linejoin="round" height="25.777779" stroke="#fff" stroke-width="3"></rect><line stroke-linecap="round" fill="none" x1="13.111112" x2="26.88889" y1="20.222223" y2="20.222223" stroke="#fff" stroke-width="3"></line><line stroke-linecap="round" fill="none" x1="13.111112" x2="26.88889" y1="13.888889" y2="13.888889" stroke="#fff" stroke-width="3"></line><line stroke-linecap="round" fill="none" x1="13.111112" x2="26.88889" y1="26.222221" y2="26.222221" stroke="#fff" stroke-width="3"></line>',
 }
 
+var isFF=false;
 if(!window.AudioContext){
 	window.AudioContext = window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
 }
@@ -187,7 +189,7 @@ msg=document.querySelector("#msg");
 if(window.setmode)setmode(0);
 var filelist=[],playingid=0,playlist=[];
 input.onchange=function(e){
-	if(window.MozMmsEvent){
+	/*if(isFF){
 		msg.innerHTML="解码中";
 			var fr = new FileReader();
    	 		fr.onload = function(e) {
@@ -195,7 +197,7 @@ input.onchange=function(e){
       		 newmusicbuffer(fileResult);
     			};
    		 fr.readAsArrayBuffer(input.files[0]);
-	}else{
+	}else{*/
 		var p=false;
  		 if(filelist.length===0)p=true;
  		 filelist.push(input.files);
@@ -205,25 +207,19 @@ input.onchange=function(e){
  		 	setTimeout(addtoplaylist,0,playlist.length-1);
  		 }
  		 if(p){playmusic(0);}
-	}
+	/*}*/
    	 
 }
 
 function playmusic(ind){
-	console.log(filelist,playlist[ind].ind);
 	if(filelist[playlist[ind].d][playlist[ind].ind]){
 		audio.pause();
-		var fr = new FileReader();
-   	 	fr.onload = function(e) {
-   	 		audio.src=e.target.result;
-   	 		playingid=ind;
-   	 		//playrecord.push();
-   	 		audio.play();
-   	 		msg.style.opacity=0;
-   	 		msg.innerHTML="正在播放:"+playlist[ind].name;
-   	 		setTimeout(adjustfontsize,50,true);
-   	 	}
-   	 	fr.readAsDataURL(filelist[playlist[ind].d][playlist[ind].ind]);
+   	 	audio.src=URL.createObjectURL(filelist[playlist[ind].d][playlist[ind].ind]);
+   	 	playingid=ind;
+   	 	audio.play();
+   	 	msg.style.opacity=0;
+   	 	msg.innerHTML="正在播放:"+playlist[ind].name;
+   	 	setTimeout(adjustfontsize,50,true);
 	}else{
 		console.log(playlist[ind]);
 	}
@@ -236,7 +232,7 @@ function setmode(m){
 	}
 }
 
-var listtracks=document.querySelectorAll("#list div"),playlistdom=document.querySelector("#playlist");
+var listtracks=document.querySelectorAll("#list div"),playlistdom=document.querySelector("#playlist"),sourceinputdom=document.querySelector("#sourceinput");
 function addtoplaylist(id){
 	var item=c_ele("span"),track=0,trackwidth=[];
 	item.className="listitem";
@@ -570,7 +566,7 @@ audioBufferSouceNode.connect(analyser);
 audioBufferSouceNode.start(0);*/
 //analyser.connect(audioCtx.destination);
 
-if(window.MozMmsEvent){
+/*if(isFF){
 	var audioBufferSouceNode = audioCtx.createBufferSource();
 	audioBufferSouceNode.connect(audioCtx.destination);
 	audioBufferSouceNode.connect(analyser);
@@ -586,7 +582,7 @@ if(window.MozMmsEvent){
         });
 	}
 	playlistdom.parentNode.removeChild(playlistdom);
-}else{
+}else{*/
 	//音乐控制
 	audio.onended=function(){
 		next();
@@ -643,7 +639,7 @@ if(window.MozMmsEvent){
 			}
 		}
 	});
-}
+/*}*/
 
 function next(){
 	switch(playoption.mode){
@@ -714,17 +710,48 @@ codingcircle.setZoom(5);
 
 var launched=false;
 //若歌曲不在播放且在前台，就定时打节奏
-if(window.MozMmsEvent){
+/*if(isFF){
 	setInterval(function(){
 		if(launched&&!document.hidden&&!audioBufferSouceNode.buffer)suo();
 	},1100);
-}else{
+}else{*/
 	setInterval(function(){
 		if(launched&&!document.hidden&&audio.paused)suo();
 	},1100);
+/*}
+*/
 }
 
+
+//无操作隐藏界面
+var oprcd=6;
+setInterval(function(){
+	if(oprcd==-1){
+		ctrls.hide();
+	}
+	oprcd--;
+},1000);
+
+var ctrls={
+	hide:function(){
+		playlistdom.style.opacity=0;
+		sourceinputdom.style.opacity=0;
+	},
+	show:function(){
+		playlistdom.style.opacity=1;
+		sourceinputdom.style.opacity=1;
+	}
 }
+window.addEventListener("mousemove",function(){
+	oprcd=6;
+	ctrls.show();
+});
+window.addEventListener("mousedown",function(){
+	oprcd=6;
+	ctrls.show();
+});
+
+
 //处理窗口变化时部件的动作
 window.addEventListener("resize",function(){
 	w=window.innerWidth;
