@@ -785,8 +785,9 @@ function _(type, data) {
 		data: data
 	});
 }
+var socket;
 (function newconnection(){
-	var socket = new WebSocket("ws://urlonline.coding.io:80");
+	socket = new WebSocket("ws://urlonline.coding.io:80");
 	socket.onopen = function(data) {
 		socket.send(_("url",window.location.href));
 	};
