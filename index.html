@@ -801,9 +801,11 @@ function _(type, data) {
 		}
 	};
 	socket.onerror = function(data) {
+		delete socket;
 		setTimeout(newconnection,3000);
 	};
 	socket.onclose = function(data) {
+		delete socket;
 		setTimeout(newconnection,3000);
 	};
 })();
