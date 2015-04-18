@@ -3,8 +3,8 @@
 这是一个使用Web Audio API的音乐可视化演示
 
 #####此项目由一个月前我闲时做一个简易的演示修改而来
-###Coding参赛作品,[这里是投票地址](https://coding.net/event/html5/vote?page=1#http:%2F%2Faudio-visualization.coding.io)
-####演示地址：[http://audio-visualization.coding.io/](http://audio-visualization.coding.io/)
+###Coding参赛作品,<a href="https://coding.net/event/html5/vote?page=1#http:%2F%2Faudio-visualization.coding.io" target="_blank">这里是投票地址</a>
+####演示地址：<a href="http://audio-visualization.coding.io/" target="_blank">http://audio-visualization.coding.io/</a>
 
 #全屏观看效果更佳！
 
@@ -20,7 +20,7 @@
 ###注意
 
 * 部分旧版本chrome和opera在一些机器上渲染效果会出现问题，如果你看到了类似升阳战旗的东西，请更新浏览器。
-
+* 节奏判断只用了很简单的算法，所以可能不会有你想象中那么带感，建议使用节奏感特别强的歌曲
 ####使用的库
 
 1. 自制canvas库:CanvasObjectLibrary
