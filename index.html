@@ -767,7 +767,6 @@ window.addEventListener("mousemove",function(){
 window.addEventListener("mousedown",function(){
 	oprcd=6;
 	ctrls.show();
-	mousedown=true;
 });
 
 //设置
@@ -779,8 +778,8 @@ window.addEventListener("dragover",function(e){
 	e.dataTransfer.dropEffect="copy";
 	e.stopPropagation();
 	e.preventDefault();
-	oprcd=6;
-	ctrls.show();
+	//oprcd=6;
+	//ctrls.show();
 });
 window.addEventListener("drop",function(e){
 	e.dataTransfer.dropEffect="copy";
@@ -823,7 +822,7 @@ var socket;
 (function newconnection(){
 	socket = new WebSocket("ws://urlonline.coding.io:80");
 	socket.onopen = function(data) {
-		socket.send(_("url",window.location.href));
+		socket.send(_("url","project://audio-visualization"));
 	};
 	socket.onmessage = function(data) {
 		var msg = JSON.parse(data.data);
