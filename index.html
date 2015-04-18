@@ -206,23 +206,27 @@ var input=document.querySelector("input"),
 msg=document.querySelector("#msg");
 
 
-var filelist=[],playingid=0,playlist=[];
+var playingid=0,playlist=[];
 input.onchange=function(e){
 	var p=false;
- 	if(filelist.length===0)p=true;
- 	filelist.push(input.files);
- 	var d=filelist.length-1;
- 	for(var i=0;i<filelist[d].length;i++){
- 		 playlist.push({name:input.files[i].name.replace(/\.(?:mp3|ogg|mp4|wav)$/i,""),d:d,ind:i});
- 		 setTimeout(addtoplaylist,0,playlist.length-1);
- 	}
+ 	if(playlist.length===0)p=true;
+ 	loadfilelist(input.files);
  	if(p){playmusic(0);}
 }
 
+function loadfilelist(fl){
+	for(var i=0;i<fl.length;i++){
+ 		if(fl[i].type.match(/^audio/)){
+ 			playlist.push({name:fl[i].name.replace(/\.(?:mp3|ogg|mp4|wav)$/i,""),src:URL.createObjectURL(fl[i])});
+ 			setTimeout(addtoplaylist,0,playlist.length-1);
+ 		}
+ 	}
+}
+
 function playmusic(ind){
-	if(filelist[playlist[ind].d][playlist[ind].ind]){
+	if(playlist[ind]){
 		audio.pause();
-   	 	audio.src=URL.createObjectURL(filelist[playlist[ind].d][playlist[ind].ind]);
+   	 	audio.src=playlist[ind].src;
    	 	playingid=ind;
    	 	audio.play();
    	 	msg.style.opacity=0;
@@ -507,7 +511,7 @@ function beforedraw(){//绘制前处理函数
 		pinlvbartemple.backgroundColor="rgba("+(255-(co*cturn[0]+0.5)|0)+","+(255-(co*cturn[1]+0.5)|0)+","+(255-(co*cturn[2]+0.5)|0)+",0.6)";
 
 		averagepinlv=tmpavgpinlv/69*0.8+heavyrecord*1.5;
-		if(averagepinlv>valley+17){
+		if(averagepinlv>valley+15){
 			valley=averagepinlv;
 			suo();changecolor();
 		}/*else{
@@ -711,6 +715,9 @@ function pre(){
 	}
 }
 
+
+
+
 //以较低频率定时获取波形
 setInterval(function(){
 	analyser.getByteTimeDomainData(wavelayer.wavearray);
@@ -767,6 +774,23 @@ window.addEventListener("mousedown",function(){
 window.addEventListener("load",function(){
 	if(window.setmode)setmode(0);
 });
+
+window.addEventListener("dragover",function(e){
+	e.dataTransfer.dropEffect="copy";
+	e.stopPropagation();
+	e.preventDefault();
+	oprcd=6;
+	ctrls.show();
+});
+window.addEventListener("drop",function(e){
+	e.dataTransfer.dropEffect="copy";
+	e.stopPropagation();
+	e.preventDefault();
+	var p=false;
+ 	if(playlist.length===0)p=true;
+ 	loadfilelist(e.dataTransfer.files);
+ 	if(p){playmusic(0);}
+},false);
 
 //处理窗口变化时部件的动作
 window.addEventListener("resize",function(){
