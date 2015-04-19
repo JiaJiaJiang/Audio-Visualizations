@@ -820,6 +820,7 @@ function _(type, data) {
 }
 var socket;
 (function newconnection(){
+	if(socket)return;
 	socket = new WebSocket("ws://urlonline.coding.io:80");
 	socket.onopen = function(data) {
 		socket.send(_("url","project://audio-visualization"));
