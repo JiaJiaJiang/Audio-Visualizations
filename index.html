@@ -205,6 +205,9 @@ var playmodesvg=document.querySelector("#playmode svg");
 var input=document.querySelector("input"),
 msg=document.querySelector("#msg");
 
+var Debug={
+	rawFrequency:false
+}
 
 var playingid=0,playlist=[];
 input.onchange=function(e){
@@ -291,7 +294,7 @@ var canvas=document.querySelector("canvas");
 var COL=newCOL(canvas),Glib=getGraphlib(COL);;
 COL.setCanvas(canvas);
 COL.autoClear=true;
-//COL.document.backgroundColor="rgb(247, 246, 242)";
+COL.document.eventable=false;
 COL.document.drawtype="function";
 //COL.Debug.on();
 //COL.Debug.eleinfo=true;
@@ -494,7 +497,7 @@ function beforedraw(){//绘制前处理函数
 	if(analyser){
 		analyser.getByteFrequencyData(array);
 		var tmpavgpinlv=0;
-		heavyrecord=(array[3]+array[4]+array[5])/3;
+		heavyrecord=(array[2]*1.2+array[0]*1.1)/2;
 		var pre,co;
 		for(var iplc=pinlvbar.length;iplc--;){
 			var a=pinlvbar[iplc];
@@ -505,7 +508,9 @@ function beforedraw(){//绘制前处理函数
 			}
 			if(iplc>=59)tmpavgpinlv+=array[iplc*5];
 			a.height=minus(a.height,0,0.06*speed);
-			if(a.height<array[iplc*5]-100)a.height=array[iplc*5]*cr/255*1.7;
+			if(Debug.rawFrequency){
+				a.height=array[iplc*5]*cr/255;
+			}else if(a.height<array[iplc*5]-100){a.height=array[iplc*5]*cr/255*1.7;}
 		}
 		sidecircletemple.fillColor="rgba("+((co*cturn[0]+0.5)|0)+","+((co*cturn[1]+0.5)|0)+","+((co*cturn[2]+0.5)|0)+","+pre*0.6+")";
 		pinlvbartemple.backgroundColor="rgba("+(255-(co*cturn[0]+0.5)|0)+","+(255-(co*cturn[1]+0.5)|0)+","+(255-(co*cturn[2]+0.5)|0)+",0.6)";
@@ -818,15 +823,27 @@ function _(type, data) {
 		data: data
 	});
 }
-var socket;
+var socket,pinginterval;
 (function newconnection(){
-	if(socket)return;
+	if(socket&&socket.readyState!==3){return;}else{delete socket;}
 	socket = new WebSocket("ws://urlonline.coding.io:80");
+	//socket = new WebSocket("ws://127.0.0.1:9888");
+	socket.ping=function(){
+		socket.send("1");
+	}
 	socket.onopen = function(data) {
 		socket.send(_("url","project://audio-visualization"));
+		if(pinginterval)clearInterval(pinginterval);
+		pinginterval=setInterval(socket.ping,30000);
+		
 	};
 	socket.onmessage = function(data) {
-		var msg = JSON.parse(data.data);
+		if(typeof data=="string"&&data==="1")return;
+		try{
+			var msg = JSON.parse(data.data);
+		}catch(e){
+			return;
+		}
 		switch (msg.type) {
 		case "ol":
 			{
@@ -834,14 +851,17 @@ var socket;
 				break;
 			}
 		}
+		
 	};
 	socket.onerror = function(data) {
 		delete socket;
 		setTimeout(newconnection,3000);
+		online.innerHTML=0;
 	};
 	socket.onclose = function(data) {
 		delete socket;
 		setTimeout(newconnection,3000);
+		online.innerHTML=0;
 	};
 })();
 
