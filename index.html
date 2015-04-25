@@ -617,7 +617,7 @@ audioBufferSouceNode.start(0);*/
 	var songlist=document.querySelector("#list");
 	songlist.addEventListener("click",function(e){
 		var o=e.target;
-		if(o.songid){
+		if(o.songid>=0){
 			playmusic(o.songid);
 		}
 	});
