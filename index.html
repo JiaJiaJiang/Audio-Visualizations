@@ -456,9 +456,7 @@ var startemplate=Glib.getGraphObj("star",{r:cr*0.026,color:"#3e3e3e"});
 startemplate.opacity=0;
 function a_star(){
 	this.g=startemplate.New();
-	//this.g.opacity=1;
-	/*this.g.x=[rand(cr*0.5,cr*0.8),rand(COL.width-cr*0.8,COL.width-cr*0.5)][rand(0,1)];
-	this.g.y=[rand(cr*0.5,cr*0.8),rand(COL.height-cr*0.8,COL.height-cr*0.5)][rand(0,1)];*/
+	this.g.zoom={x:0,y:0};
 	this.g.x=rand(0,COL.width);
 	this.g.y=rand(0,COL.height);
 	this.dera=[1,-1][rand(0,1)];
@@ -527,17 +525,19 @@ function beforedraw(){//绘制前处理函数
 		if(averagepinlv<valley){valley=averagepinlv;}
 
 		//调整星星位置
-		backrate=4.5*pre;
-			var snode=starlayer.childNode;
-			var cx=COL.width/2,
-			cy=COL.height/2,
-			sn;
-			for(var i in snode){
-				sn=snode[i];
-				var line=Math.sqrt(Math.pow(cx-sn.x,2)+Math.pow(cy-sn.y,2));
-				sn.x-=backrate*(cx-sn.x)/line;
-				sn.y-=backrate*(cy-sn.y)/line;
-			}
+		backrate=4.4*pre;
+		var snode=starlayer.childNode;
+		var cx=COL.width/2,
+		cy=COL.height/2,
+		sn;
+		var cline=Math.sqrt(cx*cx,cy*cy);
+		for(var i in snode){
+			sn=snode[i];
+			var line=Math.sqrt(Math.pow(cx-sn.x,2)+Math.pow(cy-sn.y,2));
+			sn.setZoom(line/cline+0.2);
+			sn.x-=backrate*(cx-sn.x)/line;
+			sn.y-=backrate*(cy-sn.y)/line;
+		}
 	}
 
 
