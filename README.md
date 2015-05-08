@@ -1,55 +1,55 @@
 #Audio-Visualizations
 --------
-����һ��ʹ��Web Audio API�����ֿ��ӻ���ʾ
+这是一个使用Web Audio API的音乐可视化演示
 
-#####����Ŀ��֮ǰ����һ��<a href="https://go.luojia.me/1x" target="_blank">���׵���ʾ</a>�޸Ķ���������Ʒ���Ӳ��ٹ��ܺ��Ż����ܡ�
-###Coding������Ʒ,<a href="https://coding.net/event/html5/vote?page=1#http:%2F%2Faudio-visualization.coding.io" target="_blank">������ͶƱ��ַ</a>
-####��ʾ��ַ��<a href="http://audio-visualization.coding.io/" target="_blank">http://audio-visualization.coding.io/</a>
-#####[������ʾ��ַ](http://dn-luojia.qbox.me/Audio-Visualizations/)������������ʾ�����뿴���
+#####此项目由之前我做一个<a href="https://go.luojia.me/1x" target="_blank">简易的演示</a>修改而来，此作品添加不少功能和优化性能。
 
-#ȫ���ۿ�Ч�����ѣ�
+####演示地址：<a href="http://audio-visualization.coding.io/" target="_blank">http://audio-visualization.coding.io/</a>
+#####[备用演示地址](http://dn-luojia.qbox.me/Audio-Visualizations/)，如果上面的演示挂了请看这个
 
-����ԭ��ֻ�Ǹ�demo�����Դ����ɢ�ң�����¡���
+#全屏观看效果更佳！
 
-###ʳ�÷���
+由于原本只是个demo，所以代码较散乱，请见谅。。
 
-����ʾ���������İ�ťѡ�������ļ������߰������ļ��Ϸŵ���ť�ϡ�
+###食用方法
+
+打开演示后点击顶部的按钮选择音乐文件，或者把音乐文件拖放到按钮上。
 
 
-�鿴����Debug:�ڿ���ִ̨��`COL.Debug.on()` ���ر�Debug: `COL.Debug.off()` ��
+查看自制Debug:在控制台执行`COL.Debug.on()` ，关闭Debug: `COL.Debug.off()` 。
 
-###ע��
+###注意
 
-* ���־ɰ汾chrome��opera��һЩ��������ȾЧ����������⣬����㿴������������ս��Ķ�����������������
-* �����ж�ֻ���˺ܼ򵥵��㷨�����Կ��ܲ���������������ô���У�����ʹ�ý�����ر�ǿ�ĸ���
+* 部分旧版本chrome和opera在一些机器上渲染效果会出现问题，如果你看到了类似升阳战旗的东西，请更新浏览器。
+* 节奏判断只用了很简单的算法，所以可能不会有你想象中那么带感，建议使用节奏感特别强的歌曲
 
-####ʹ�õĿ�
+####使用的库
 
-1. ����canvas��:CanvasObjectLibrary
-2. û��
+1. 自制canvas库:CanvasObjectLibrary
+2. 没了
 
-#��֧�ֵ������
+#不支持的浏览器
 
 1. IE
-2. ��֪��
+2. 不知道
 
 
-##�ļ�˵��
-1. CanvasObjectLibrary.js ����canvas��
-2. GraphLib.js COL����Ҽ���ͼ�ο�
-3. index.html ��Ŀ����
+##文件说明
+1. CanvasObjectLibrary.js 自制canvas库
+2. GraphLib.js COL的外挂简易图形库
+3. index.html 项目代码
 
-##ʹ�õ�HTML5�й�API
+##使用的HTML5有关API
 * WebSocket
 * URL API
-* Canvasϵ��API
-* AudioContextϵ��API
+* Canvas系列API
+* AudioContext系列API
 * Audio
 
 
-###����һ����ΰ����滵(����̨���������¶���)
+###介绍一下如何把它玩坏(控制台里输入以下东西)
 * COL.autoClear=false
-* COL.Debug.on();COL.Debug.eleinfo=true; //���ֵ������õ�ʱ����
+* COL.Debug.on();COL.Debug.eleinfo=true; //体现电脑配置的时候到了
 * speed=5
 * text.zoom.x=-1;
 * text.zoom.y=2;
@@ -58,4 +58,4 @@
 * sidecircletemple.setR(400)
 
 ###Debug
-* Debug.rawFrequency=true	//��ʾԭʼƵ�ʷֲ�
+* Debug.rawFrequency=true	//显示原始频率分布
