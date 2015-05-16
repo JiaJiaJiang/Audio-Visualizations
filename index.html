@@ -338,7 +338,7 @@ COL.document.addChild(wavelayer);
 
 
 //两边的小圆
-var sidecircletemple=Glib.getGraphObj("arc",{r:cr*0.39,fillColor:"rgba(102, 102, 102, 0.4)",anticlockwise:false});
+var sidecircletemple=Glib.getGraphObj("arc",{r:cr*0.39,fillColor:"rgba(102, 102, 102, 0.4)"});
 sidecircletemple.relativerotatecenter.x=0.5;
 sidecircletemple.relativerotatecenter.y=0.5;
 sidecircletemple.relativepositionpoint.x=0.5;
@@ -349,7 +349,7 @@ var sidecirclearr=[];
 (function(){
 	//var 
 	for(var i=0;i<4;i++){
-		sidecirclearr[i]=sidecircletemple.New(true);
+		sidecirclearr[i]=sidecircletemple.New(true,false,true);
 		sidecirclearr[i].offsetzoom=0;
 		COL.Graph.Eventable(sidecirclearr[i]);
 		sidecirclearr[i].addEvent("mouseover",function(e){
