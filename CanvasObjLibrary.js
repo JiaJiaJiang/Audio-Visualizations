@@ -529,7 +529,7 @@ function newCOL() {
 					newobj.relativepositionpoint= {x: 0,y: 0};
 					newobj.relativerotatecenter={x: 0,y: 0};
 				}
-				newZoom&&(newobj.zoom={x: 1,y: 1};);
+				newZoom&&(newobj.zoom={x: 1,y: 1});
 				if(inherit===true){
 					return newobj;
 				}
