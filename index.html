@@ -350,7 +350,6 @@ var sidecirclearr=[];
 	//var 
 	for(var i=0;i<4;i++){
 		sidecirclearr[i]=sidecircletemple.New(true);
-		sidecirclearr[i].zoom={x:1,y:1};
 		sidecirclearr[i].offsetzoom=0;
 		COL.Graph.Eventable(sidecirclearr[i]);
 		sidecirclearr[i].addEvent("mouseover",function(e){
@@ -455,8 +454,7 @@ codingcircle.addChild(text);
 var startemplate=Glib.getGraphObj("star",{r:cr*0.026,color:"#3e3e3e"});
 startemplate.opacity=0;
 function a_star(){
-	this.g=startemplate.New();
-	this.g.zoom={x:0,y:0};
+	this.g=startemplate.New(true,true);
 	this.g.x=rand(0,COL.width);
 	this.g.y=rand(0,COL.height);
 	this.dera=[1,-1][rand(0,1)];
