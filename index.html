@@ -1,5 +1,5 @@
 <!-- 
-Copyright luojia@blog.luojia.me 
+Copyright luojia@luojia.me 
 Authorship reserved
 -->
 <meta charset="utf-8">
@@ -815,7 +815,7 @@ function _(type, data) {
 var socket,pinginterval;
 (function newconnection(){
 	if(socket&&socket.readyState!==3){return;}else{delete socket;}
-	socket = new WebSocket("ws://urlonline.coding.io:80");
+	socket = new WebSocket("wss://luojia-online.daoapp.io");
 	//socket = new WebSocket("ws://127.0.0.1:9888");
 	socket.ping=function(){
 		socket.send("1");
