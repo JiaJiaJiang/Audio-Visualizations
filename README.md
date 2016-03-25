@@ -4,7 +4,7 @@
 
 #####此项目由之前我做一个<a href="https://go.luojia.me/1x" target="_blank">简易的演示</a>修改而来，此作品添加不少功能和优化性能。
 
-####演示地址：<a href="http://audio-visualization.coding.io/" target="_blank">http://audio-visualization.coding.io/</a>
+####演示地址：<a href="http://luojia.coding.me/Audio-Visualizations/" target="_blank">http://luojia.coding.me/Audio-Visualizations/</a>
 #####[备用演示地址](http://dn-luojia.qbox.me/Audio-Visualizations/)，如果上面的演示挂了请看这个
 
 #全屏观看效果更佳！
