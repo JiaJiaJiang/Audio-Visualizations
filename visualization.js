@@ -31,6 +31,8 @@ function AudioVisualization(canvas,audio){
 	var frequencyArray=new Uint8Array(this.analyser.frequencyBinCount),
 		waveArray=new Float32Array(this.analyser.fftSize/2);
 
+	frequencyArray.fill(511);
+
 	this.frequencyDebug=false;
 
 	COL.root.onoverCheck=false;
