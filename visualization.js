@@ -128,7 +128,7 @@ function AudioVisualization(canvas,audio){
 	fre2.insertBefore(fre1);
 
 	var fre3=freTemplate.createShadow();
-	fre3.color='#795548'/*'#353535'*/;
+	fre3.color='#c3790b'/*'#353535'*/;
 	fre3.start=301;
 	fre3.end=435;
 	fre3.distance=/*2*Math.PI/(fre3.end-fre3.start+1)*/0.6;
