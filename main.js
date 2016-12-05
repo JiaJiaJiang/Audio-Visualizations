@@ -345,7 +345,7 @@ var socket, pinginterval;
 		socket.send("1");
 	}
 	socket.onopen = function(data) {
-		socket.send(_("url", "project://audio-visualization"));
+		socket.send(_("url", "project://audio-visualization2"));
 		if (pinginterval) clearInterval(pinginterval);
 		pinginterval = setInterval(socket.ping, 30000);
 
