@@ -185,6 +185,7 @@ function AudioVisualization(canvas,audio){
 	var buttomFre=new COL.class.FunctionGraph();
 	buttomFre.onoverCheck=false;
 	buttomFre.drawer=function(ct){
+		//ct.beginPath()
 		ct.fillStyle='rgba(0,0,0,0.08)';
 		var s=1,e=fre1.start-1,W=COL.canvas.width/(e-s+1),
 			h=COL.canvas.height;
