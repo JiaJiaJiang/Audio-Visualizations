@@ -1,1286 +1,1251 @@
 /*
-CopyRight(Left) iTisso
-member:LuoJia
+MIT LICENSE
+Copyright (c) 2016 iTisso
+https://github.com/iTisso/CanvasObjLibrary
+varsion:2.0 beta
 */
-function newCOL() {
-	var COL = {
-		keys: [],
-		/*主canvas*/
-		/*The main canvas*/
-		canvas: null,
-		/*The eventable obj canvas*/
-		eventobjcanvas: null,
-		/*Canvas' context*/
-		context: null,
-		/*The eventable obj canvas' context*/
-		eocct: null,
-		/*buffercanvas: null,*/
-		//buffercontext: null,
-		/*default font*/
-		font: {
-			fontStyle: null,
-			fontWeight: null,
-			textInput: null,
-			fontVariant: null,
-			color: "#000",
-			lineHeight: null,
-			fontSize: "15px",
-			fontFamily: "Arial"
-		},
-		/*The current main context*/
-		currentcontext: null,
-		/*currentcontext's abbr*/
-		cct: null,
-		/*Eventable objs' color*/
-		colorarray: [],
-		mouseleft: false,
-		mouseright: false,
-		mousecenter: false,
-		mouseX: null,
-		mouseY: null,
-		/*The currently focused on obj*/
-		focus: null,
-		/*If the main can is on focus*/
-		canvasonfocus: false,
-		/*root obj*/
-		document: null,
-		onoverElement: null,
-		//simpleMouseCheckMode: false,//bug
-		/*whether to use initiative matrix*/
-		MatrixTransformMode: false,
-		matrixchanged: true,
-		tmpGraphID: 0,
-		tmpEventID: 0,
-		lastmovedtime: null,
-		fps: {
-			c: 0,
-			v: 0,
-			i: null
-		},
-		e: {
-			mouseoutcanvas: function() {
-				COL.mouseX = null;
-				COL.mouseY = null;
-				if (COL.onoverElement) {
-					var eve =COL.event();
-					eve.target=COL.onoverElement;
-					COL.onoverElement.fireEvent("mouseout", eve);
-				}
-				COL.onoverElement = null;
-			}
-		},
-		tosign: {
-			click: false,
-			centerclick: false,
-			rightcilck: false,
-			onmoveele: null,
-			draging: false
-		},
-		eventobj:{
-			stopPropagation:function() {
-				this.Propagation = false;
-			},
-			Propagation:true
-		},
-		event: function() {
-			return Object.create(COL.eventobj);
-		},
+'use strict';
 
-		/*在当前基础上新建一个对象*/
-		/*Create a new gui obj based on the current obj*/
-		New: function() {
-			return Object.create(this);
-		}
-	};
-	COL.generateGraphID = function() {
-		return (++COL.tmpGraphID);
-	};
-	COL.initeventobjcanvas = function() {
-		COL.eocct = (COL.eventobjcanvas = document.createElement("canvas")).getContext("2d");
-	};
-	COL.adjustcanvas = function(width,height) {
-		COL.eventobjcanvas.width = COL.document.width =COL.canvas.width= COL.width = width||COL.canvas.offsetWidth;
-		COL.eventobjcanvas.height = COL.document.height =COL.canvas.height= COL.height = height||COL.canvas.offsetHeight;
-	}
-	COL.imageSmoothing = {
-		on: function() {
-			COL.context.imageSmoothingEnabled = true;
-		},
-		off: function() {
-			COL.context.imageSmoothingEnabled = false;
-		}
-	};
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	/*创建图形用的画布*/
-	/*A canvas to create picture*/
-	COL.imagecreater = {
-		creatercanvas: null,
-		creatercontext: null,
-		init: function() {
-			COL.imagecreater.creatercanvas = document.createElement("canvas");
-			COL.imagecreater.creatercontext = COL.imagecreater.creatercanvas.getContext("2d");
-		},
-		drawpic: function(_width, _height, _draw) {
-			COL.imagecreater.creatercontext||COL.imagecreater.init();
-			var ct = COL.imagecreater.creatercontext,
-			cv = COL.imagecreater.creatercanvas;
-			COL.imagecreater.creatercanvas.width = _width;
-			COL.imagecreater.creatercanvas.height = _height;
-			_draw(ct);
-			var c = document.createElement("canvas");
-			c.width = _width;
-			c.height = _height;
-			c.getContext("2d").drawImage(cv, 0, 0);
-			return c;
-		}
-	};
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	/*设置主画布*/
-	/*set main canvas*/
-	COL.setCanvas = function(canvas_dom) {
-		COL.canvas = canvas_dom;
-		canvas_dom.width = canvas_dom.offsetWidth;
-		canvas_dom.height = canvas_dom.offsetHeight;
-		COL.initeventobjcanvas();
-		/*Solve events*/
-		var aEL = COL.tools.addEventListener;
-		aEL(canvas_dom, "mouseover",
-		function(e) {
-			COL.canvasonfocus = true;
-			//COL.mousestatuechanged = true;
-		});
-		aEL(canvas_dom, "mousemove",
-		function(e) {
-			//e.preventDefault();
-			//COL.mousePosition.fun(e);
-			COL.mouseX = e.layerX;
-			COL.mouseY = e.layerY;
-			var idata = COL.eocct.getImageData(COL.mouseX, COL.mouseY, 1, 1).data;
-			var color = idata[0] * 1000000 + idata[1] * 1000 + idata[2];
-			COL.newonoverElement = COL.colorarray[color];
-			if (COL.onoverElement !== COL.newonoverElement) {
-				if (COL.onoverElement) {
-					var eve = COL.event();
-					eve.target = COL.onoverElement;
-					COL.onoverElement.fireEvent("mouseout", eve);
-					COL.tosign.click = COL.tosign.centerclick = COL.tosign.rightcilck = false;
-				}
-				COL.onoverElement = COL.newonoverElement;
-				if (COL.onoverElement) {
-					var eve =COL.event();
-					eve.target = COL.onoverElement;
-					COL.onoverElement.fireEvent("mouseover", eve);
-				}
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-			}
-			var eve =COL.event();
-			eve.target = COL.onoverElement;
-			//COL.mousestatuechanged = true;
-			if (COL.onoverElement) {
-				COL.onoverElement.fireEvent("mousemove", eve);
-			}
-		});
-		aEL(canvas_dom, "mousedown",
-		function(e) {
-			COL.canvasonfocus = true;
-			//COL.mousestatuechanged = true;
-			//e.preventDefault();
-			COL.mouseX = e.layerX;
-			COL.mouseY = e.layerY;
-			var eve =COL.event();
-			eve.target = COL.onoverElement;
-			eve.button = e.button;
-			COL.tosign.click = true;
-			switch (eve.button) {
-			case 0:
-				COL.tosign.click = COL.mouseleft = true;
-				break;
-			case 1:
-				COL.tosign.centerclick = COL.mousecenter = true;
-				break;
-			case 2:
-				COL.tosign.rightclick = COL.mouseright = true;
-				break;
-			}
-			if (COL.onoverElement) {
-				COL.onoverElement.fireEvent("mousedown", eve);
-				if (COL.onoverElement.eventable) {
-					COL.focus = COL.onoverElement;
-				}
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-			}
-		});
-		aEL(canvas_dom, "mouseup",
-		function(e) {
-			//COL.mousestatuechanged = true;
-			var eve = COL.event();
-			eve.target = COL.onoverElement;
-			eve.button = e.button;
-			switch (eve.button) {
-			case 0:
-				COL.mouseleft = false;
-				if (COL.tosign.click && eve.target) {
-					eve.target.fireEvent("click", eve);
-				}
-				break;
-			case 1:
-				COL.mousecenter = false;
-				if (COL.tosign.centerclick && eve.target) {
-					eve.target.fireEvent("centerclick", eve);
-				}
-				break;
-			case 2:
-				COL.mouseright = false;
-				if (COL.tosign.rightclick && eve.target) {
-					eve.target.fireEvent("rightclick", eve);
-				}
-				break;
-			}
-			if (COL.onoverElement) {
-				COL.onoverElement.fireEvent("mouseup", eve);
-			}
-		});
-		aEL(canvas_dom, "mouseout",
-		function() {
-			//COL.mousestatuechanged = true;
-			COL.e.mouseoutcanvas();
-		});
-		aEL(document, "mousedown",
-		function(e) {
-			if (e.target != COL.canvas) {
-				COL.canvasonfocus = false;
-			}
-		});
+(function () {
+	function addEvents(target) {
+		var events = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-		/*aEL(canvas_dom, "contextmenu",
-		function(e) {
-			e.preventDefault();
-		});*/
-		aEL(canvas_dom, "selectstart",
-		function(e) {
-			e.preventDefault();
-		});
-		aEL(window, "mouseout",
-		function() {
-			COL.e.mouseoutcanvas();
-		});
-
-		var _mousewheele = (COL.tools.getBrowser() == "firefox") ? "DOMMouseScroll": "mousewheel";
-		aEL(canvas_dom, _mousewheele,
-		function(e) {
-			e = e || window.event;
-			var eve = COL.event();
-			eve.target = COL.onoverElement;
-			var data = e.wheelDelta ? e.wheelDelta: e.detail;
-			if (data == -3 || data == 120) {
-				eve.wheel = 0;
-			} else if (data == 3 || data == -120) {
-				eve.wheel = 1;
-			}
-			if (COL.onoverElement) {
-				COL.onoverElement.fireEvent("mousewheel", eve);
-			}
-
-		});
-		aEL(window, "keydown",
-		function(e) {
-			if (COL.canvasonfocus) {
-
-				if (!COL.keys[e.keyCode]) {
-					//e.preventDefault();
-					var eve =COL.event();
-					eve.keyCode = e.keyCode;
-					COL.keys[e.keyCode] = true;
-					if (COL.focus) {
-						COL.focus.fireEvent("keydown", eve);
-					}
-				}
-			}
-		});
-		aEL(window, "keyup",
-		function(e) {
-			if (COL.canvasonfocus) {
-				if (COL.keys[e.keyCode]) {
-					var eve =COL.event();
-					eve.keyCode = e.keyCode;
-					COL.keys[e.keyCode] = false;
-					if (COL.focus) {
-						COL.focus.fireEvent("keyup", eve);
-					}
-				}
-				// e.preventDefault();
-			}
-		});
-		aEL(window, "keypress",
-		function(e) {
-			if (COL.canvasonfocus) {
-				var eve =COL.event();
-				eve.keyCode = e.keyCode;
-				COL.keys[e.keyCode] = false;
-				if (COL.focus) {
-					COL.focus.fireEvent("keypress", eve);
-				}
-				// e.preventDefault();
-			}
-		});
-		COL.context = canvas_dom.getContext("2d");
-		COL.currentcontext = COL.buffercontext || COL.context;
-		COL.cct = COL.currentcontext;
-		COL.MatrixTransform.off();
-		COL.document = COL.Graph.New();
-		COL.Graph.Eventable(COL.document);
-		COL.document.drawtype = "image";
-		COL.document.name = "document";
-		COL.document.width = canvas_dom.width;
-		COL.document.height = canvas_dom.height;
-		COL.drawlist = [COL.document];
-		COL.MatrixTransform.off();
-		COL.adjustcanvas();
-	};
-
-	COL.MatrixTransform = {
-		on: function() {
-			COL.MatrixTransformMode = true;
-			COL.matrixchanged = true;
-		},
-		off: function() {
-			COL.MatrixTransformMode = false;
-		}
-	};
-	COL.transform=function(ct,obj){
-		if(COL.MatrixTransformMode&&obj.matrix&&obj.usematrix){
-			ct.transform(obj.matrix[0], obj.matrix[1], obj.matrix[3], obj.matrix[4], obj.matrix[2], obj.matrix[5]);
-		}else{
-			var pn=!!obj.parentNode;
-			if(obj.relativesize.width>=0&&pn)obj.width=obj.relativesize.width*obj.parentNode.width;
-			if(obj.relativesize.height>=0&&pn)obj.height=obj.relativesize.height*obj.parentNode.height;
-			var rotatex=obj.relativerotatecenter.x?obj.relativerotatecenter.x*obj.width:obj.rotatecenter.x,
-			rotatey=obj.relativerotatecenter.y?obj.relativerotatecenter.y*obj.height:obj.rotatecenter.y;
-			ct.translate(
-				((obj.relativeposition.x&&pn)?obj.relativeposition.x*obj.parentNode.width:obj.x) + rotatex - (obj.relativepositionpoint.x?obj.relativepositionpoint.x*obj.width:obj.positionpoint.x),
-				((obj.relativeposition.y&&pn)?obj.relativeposition.y*obj.parentNode.height:obj.y)+rotatey- (obj.relativepositionpoint.y?obj.relativepositionpoint.y*obj.height:obj.positionpoint.y));
-			obj.rotate&&ct.rotate(obj.rotate * 0.0174532925);
-			ct.scale(obj.zoom.x, obj.zoom.y);
-			ct.translate(-rotatex,-rotatey);
+		for (var e in events) {
+			target.addEventListener(e, events[e]);
 		}
 	}
-	COL.Graph = {
-		New: function(opjson) {
-			//var cF = COL.Graph.commonFunction;//cF
-			var g=COL.Graph.rawObj.baseobj.New(true,true);
-			if (opjson) {
-				for (var ob in opjson) {
-					g[ob] = opjson[ob];
-				}
-			}
-			return g;
-		},
-		NewImageObj: function(image) {
-			var m = COL.Graph.New();
-			if (image) {
-				m.useImage(image);
-			}
-			return m;
-		},
-		NewTextObj: function(text, fontsize, opjson) {
-			var t = COL.Graph.New();
-			t.drawtype = "text";
-			t.autoVary = true;
-			t.realtimeVary = false;
-			t.text = text || " ";
-			t.varylist = [];
-			t.linedirection = 0; //"0:left-right;1:up-down"
-			t.columndirection = 0; //"0:+ 1:-"
-			t.baseline = "middle";
-			t.fontStyle = null;
-			t.fontWeight = null;
-			t.textInput = null;
-			t.fontVariant = null;
-			t.lineHeight = t.fontSize = fontsize || 15;
-			t.fontFamily = null;
-			t.innerX = 0;
-			t.innerY = 0;
-			t.color = "#000";
-			t.autoSize = true;
-			t.editable = false;
-			t.textborderWidth = 0;
-			t.textborderColor = "#fff";
-			t.fill = true;
-			t.shadowBlur = 0;
-			t.shadowColor = "#CCC";
-			t.shadowOffset = {
-				x: 0,
-				y: 0
-			};
-			t.maxWidth = 0;
-			if (opjson) {
-				for (var ob in opjson) {
-					t[ob] = opjson[ob];
-				}
-			}
-			t.vary = COL.Graph.commonFunction.t.vary;
-			t.prepareText = COL.Graph.commonFunction.t.prepareText;
-			t.setSize = COL.Graph.commonFunction.t.setSize;
-			t.setText = COL.Graph.commonFunction.t.setText;
-			if (t.autoVary) t.prepareText();
-			return t;
-		},
-		Eventable: function(graph) {
-			graph.eventable = true;
-			//graph.overPath = null;
-			graph.pricolor = COL.tools.get_a_unique_color(graph);
-			graph.events = {};
-			//graph.addEvent = COL.Graph.commonFunction.Event.addEvent;
-			//graph.removeEvent = COL.Graph.commonFunction.Event.removeEvent;
-		},
-		commonFunction: {
-			set: function(json) {
-				if (json) {
-					for (var ob in json) {
-						this[ob] = json[ob];
+
+	//class:CanvasObjLibrary
+
+	var CanvasObjLibrary = function () {
+		function CanvasObjLibrary(canvas) {
+			var _font,
+			    _this = this;
+
+			_classCallCheck(this, CanvasObjLibrary);
+
+			if (canvas instanceof HTMLCanvasElement === false) throw new TypeError('canvas required');
+			var COL = this;
+			Object.assign(this, {
+				/*The main canvas*/
+				canvas: canvas,
+				/*Canvas' context*/
+				context: canvas.getContext('2d'),
+				default: {
+					/*default font*/
+					font: (_font = {
+						fontStyle: null,
+						fontWeight: null,
+						fontVariant: null,
+						color: "#000",
+						lineHeight: 14,
+						fontSize: 14,
+						fontFamily: "Arial",
+						strokeWidth: 0,
+						strokeColor: "#000",
+						shadowBlur: 0,
+						shadowColor: "#000",
+						shadowOffsetX: 0,
+						shadowOffsetY: 0,
+						fill: true
+					}, _font['lineHeight'] = 18, _font.reverse = false, _font),
+					style: {
+						width: 1,
+						height: 1,
+						hidden: false,
+						opacity: 1,
+						clipOverflow: false,
+						backgroundColor: null,
+						composite: null,
+						debugBorderColor: 'black',
+						x: 0,
+						y: 0,
+						zoomX: 1,
+						zoomY: 1,
+						rotate: 0,
+						rotatePointX: 0,
+						rotatePointY: 0,
+						positionPointX: 0,
+						positionPointY: 0,
+						zoomPointX: 0,
+						zoomPointY: 0,
+						skewX: 1,
+						skewY: 1,
+						skewPointX: 0,
+						skewPointY: 0
 					}
-				}
-			},
-			drawpic: function(width, height, _draw) {
-				this.width = width;
-				this.height = height;
-				this.imageobj = COL.imagecreater.drawpic(width, height, _draw);
-			},
-			setZoom: function(x, y) {
-				if (arguments.length == 1) this.zoom.x = this.zoom.y = x;
-				else if (arguments.length == 2) {
-					this.zoom.x = x;
-					this.zoom.y = y;
-				}
-			},
-			useImage: function(image) {
-				this.imageobj||(this.imageobj = document.createElement("canvas"));
-				var _this = this;
-				function set() {
-					_this.width = _this.imageobj.width = image.width;
-					_this.height = _this.imageobj.height = image.height;
-					_this.imageobj.getContext("2d").drawImage(image, 0, 0);
-				}
-				if (!image.complete) {
-					image.onload = function() {
-						set();
-					};
-				}else{
-					try {
-						set();
-					} catch(e) {
-						console.log(e);
-					}
-				}
-			},
-			borderPathFun: function(ct) {
-				ct.rect(0, 0, this.width, this.height);
-			},
-			zindex: function(index) {
-				this.z_index = index;
-				!this.parentNode||COL.tools.arraybyZ_index(this.parentNode);
-			},
-			setRotateCenter: function() {
-				if (arguments.length == 2) {
-					this.rotatecenter.x = arguments[0];
-					this.rotatecenter.y = arguments[1];
-				} else if (arguments.length == 1) {
-					switch (arguments[0]) {
-					case "center":
-						{
-							this.rotatecenter.x = this.width / 2;
-							this.rotatecenter.y = this.height / 2;
-							break;
-						}
-					}
-				}
-			},
-			setPositionPoint: function() {
-				if (arguments.length == 2) {
-					this.positionpoint.x = arguments[0];
-					this.positionpoint.y = arguments[1];
-				} else if (arguments.length == 1) {
-					switch (arguments[0]) {
-					case "center":
-						{
-							this.positionpoint.x = this.width / 2;
-							this.positionpoint.y = this.height / 2;
-							break;
-						}
-					}
-				}
-			},
-			setSize: function(w, h) {
-				this.width = w;
-				this.height = h;
-			},
-			New: function(inherit,newPositionObj,newZoom) {//获得一个可选继承和使用新位置对象的元素
-				var newobj = this.clone();
-				newobj.parentNode = null;
-				newobj.childNode = [];
-				newobj.drawlist = [];
-				newobj.GraphID = COL.generateGraphID();
-				COL.MatrixTransformMode&&this.usematrix&&(newobj.matrix=COL.tools.baseMatrix());
-				if(newPositionObj){
-					newobj.positionpoint={x: 0,y: 0};
-					newobj.rotatecenter={x: 0,y: 0};
-					newobj.relativeposition={x: 0,y: 0};
-					newobj.relativesize={width: -1,height: -1};
-					newobj.relativepositionpoint= {x: 0,y: 0};
-					newobj.relativerotatecenter={x: 0,y: 0};
-				}
-				(newZoom!==false)&&(newobj.zoom={x: 1,y: 1});
-				if(inherit===true){
-					return newobj;
-				}
-				//不使用继承的话会完全拷贝一个新的图形对象出来
-				return COL.tools.clone(newobj);
-			},
-			clone: function() {//获得一个完全继承的对象
-				var newobj = Object.create(this);
-				return newobj;
-			},
-			addChild: function(graph) {
-				if (graph.GraphID && !this.childNode[graph.GraphID]) {
-					this.childNode[graph.GraphID] = graph;
-					graph.parentNode = this;
-					if (this.needsort) {
-						COL.tools.arraybyZ_index(this);
-					} else {
-						this.drawlist.push(graph);
-					}
-					if(COL.MatrixTransformMode){
-						this.setMatrix();
-						graph.setMatrix();
-					}
-					
-				}
-			},
-			removeChild: function(graph) {
-				if (this.childNode[graph.GraphID]) {
-					graph.parentNode = null;
-					this.childNode[graph.GraphID] = null;
-					delete this.childNode[graph.GraphID];
-					var ind = this.drawlist.lastIndexOf(graph);
-					if (typeof ind=="number"&&ind >= 0) {
-						this.drawlist.splice(ind, 1);
-					}
-					COL.matrixchanged=true;
-				}
-			},
-			setMatrix: function(floatarrayMatrix) {
-				COL.matrixchanged = true;
-				this.relativesize.width<0||(this.width=this.relativesize.width*this.parentNode.width);
-				this.relativesize.height<0||(this.height=this.relativesize.height*this.parentNode.height);
-				if (!floatarrayMatrix) { 
-					var rotate = this.rotate * 0.0174532925,
-					cos = Math.cos(rotate),
-					sin = Math.sin(rotate),
-					pn=!!this.parentNode;
-					this.matrix||(this.matrix = COL.tools.baseMatrix());
-					var rotatex=this.relativerotatecenter.x?this.relativerotatecenter.x*this.width:this.rotatecenter.x,
-					rotatey=this.relativerotatecenter.y?this.relativerotatecenter.y*this.height:this.rotatecenter.y;
-					COL.tools.multiplyMatrix(
-						[1, 0, -rotatex, 0, 1, -rotatey, 0, 0, 0],
-						[this.zoom.x, 0, 0, 0, this.zoom.y, 0, 0, 0, 0], 
-						[cos, -sin, 0, sin, cos, 0, 0, 0, 0], 
-						[1, 0, ((this.relativeposition.x&&pn)?this.relativeposition.x*this.parentNode.width:this.x)  + rotatex - (this.relativepositionpoint.x?this.relativepositionpoint.x*this.width:this.positionpoint.x), 0, 1, ((this.relativeposition.y&&pn)?this.relativeposition.y*this.parentNode.height:this.y) + rotatey - (this.relativepositionpoint.y?this.relativepositionpoint.y*this.height:this.positionpoint.y), 0, 0, 0],
-						this.matrix);
-				} else {
-					this.matrix = new Float32Array(floatarrayMatrix);
-				}
-			},
-			drawDebugstat: function(cct) {
-				cct.save();
-				cct.setTransform(1, 0, 0, 1, 0, 0);
-				cct.font = "16px Arial";
-				cct.textBaseline = "bottom";
-				cct.globalCompositeOperation = "lighter";
-				cct.fillStyle = "red";
-				cct.fillText("mouseX:" + COL.mouseX + " Y:" + COL.mouseY + " mouseL:" + COL.mouseleft + " C:" + COL.mousecenter + " R:" + COL.mouseright + " FPS:" + COL.fps.v + " Items:" + COL.Debug.itemcount, 0, COL.canvas.height);
-				cct.fillText("onmouseoverGraphID:" + (COL.onoverElement ? COL.onoverElement.GraphID: "null") + " onfocusGraphID:" + (COL.focus ? COL.focus.GraphID: "null"), 0, COL.canvas.height - 20);
-				cct.strokeStyle = "red";
-				cct.globalCompositeOperation = "source-over";
-				cct.moveTo(COL.mouseX, COL.mouseY + 6);
-				cct.lineTo(COL.mouseX, COL.mouseY - 6);
-				cct.moveTo(COL.mouseX - 6, COL.mouseY);
-				cct.lineTo(COL.mouseX + 6, COL.mouseY);
-				cct.stroke();
-				cct.restore();
-				COL.fps.c++;
-			},
-			t: {
-				vary: function(ct) {
-					this.baseline&&(ct.textBaseline = this.baseline);
-					this.textborderWidth&&(ct.lineWidth = this.textborderWidth);
-					this.textborderColor&&(ct.strokeStyle = this.textborderColor);
-					ct.fillStyle = this.color || COL.font.color || "#000";
-					if (this.shadowBlur > 0) {
-						ct.font = this.font;
-						ct.shadowBlur = this.shadowBlur;
-						this.shadowColor&&(ct.shadowColor = this.shadowColor);
-						this.shadowOffset.x&&(ct.shadowOffsetX = this.shadowOffset.x);
-						this.shadowOffset.y&&(ct.shadowOffsetY = this.shadowOffset.y);
-					}
-					ct.font = this.font;
-					if (this.linedirection === 0) {
-						ct.translate(0, this.lineHeight / 2);
-						if (this.columndirection === 0) {
-							for (var i = 0; i < this.varylist.length; i++) {
-								ct.save();
-								this.fill&&ct.fillText(this.varylist[i], this.innerX, this.innerY);
-								if (this.textborderWidth) {
-									ct.shadowBlur = 0;
-									ct.strokeText(this.varylist[i], this.innerX, this.innerY);
-								}
-								ct.restore();
-								ct.translate(0, this.lineHeight);
-							}
-						} else if (this.columndirection == 1) {
-							for (var i = this.varylist.length - 1; i > 0; i--) {
-								ct.save();
-								ithis.fill&&ct.fillText(this.varylist[i], this.innerX, this.innerY);
-								if (this.textborderWidth) {
-									ct.shadowBlur = 0;
-									ct.strokeText(this.varylist[i], this.innerX, this.innerY);
-								}
-								ct.restore();
-								ct.translate(0, this.lineHeight);
-							}
-						}
-					} else if (this.linedirection == 1) {
-						if (this.columndirection === 0) {
-							for (var i = 0; i < this.varylist.length; i++) {
-								ct.save();
-								ct.translate(i * this.lineHeight, this.fontSize / 2);
-								var thisline = this.varylist[i].split("");
-								for (var im = 0; im < thisline.length; im++) {
-									ct.save();
-									ct.translate(this.lineHeight - ct.measureText(thisline[im]).width, 0);
-									this.fill&&ct.fillText(thisline[im], this.innerX, this.innerY);
-									if (this.textborderWidth) {
-										ct.shadowBlur = 0;
-										ct.strokeText(thisline[im], this.innerX, this.innerY);
-									}
-									ct.restore();
-									ct.translate(0, this.fontSize);
-								}
-								ct.restore();
-							}
-						} else if (this.columndirection == 1) {
-							for (var i = this.varylist.length - 1; i > 0; i--) {
-								ct.save();
-								ct.translate((this.varylist.length - 1 - i) * this.lineHeight, this.fonSize / 2);
-								var thisline = this.varylist[i].split("");
-								for (var im = 0; im < thisline.length; im++) {
-									ct.save();
-									ct.translate(this.lineHeight - ct.measureText(thisline[im]).width, 0);
-									this.fill&&ct.fillText(thisline[im], this.innerX, this.innerY);
-									if (this.textborderWidth) {
-										ct.shadowBlur = 0;
-										ct.strokeText(thisline[im], this.innerX, this.innerY);
-									}
-									ct.restore();
-									ct.translate(0, this.fontSize);
-								}
-								ct.restore();
-							}
-						}
-					}
-				
 				},
-				prepareText: function() {
-					((!this.imageobj) || (!this.imageobj.getContext))&&(this.imageobj = document.createElement("canvas"));
-					var imgobj = this.imageobj;
-					var ct = imgobj.getContext("2d");
-					ct.clearRect(0, 0, imgobj.width, imgobj.height);
-					this.varylist = this.text.split(/\n/g);
-					var font = "";
-					if (this.fontStyle || COL.font.fontStyle) font += this.fontStyle || COL.font.fontStyle;
-					if (this.fontVariant || COL.font.fontVariant) font += (" " + (this.fontVariant || COL.font.fontVariant));
-					if (this.fontWeight || COL.font.fontWeight) font += (" " + (this.fontWeight || COL.font.fontWeight));
-					font += (" " + (this.fontSize || COL.font.fontSize) || 15) + "px";
-					if (this.fontFamily || COL.font.fontFamily) font += (" " + (this.fontFamily || COL.font.fontFamily));
-					else {
-						font += (" " + COL.fontFamily);
+				stat: {
+					mouse: {
+						x: null,
+						y: null,
+						previousX: null,
+						previousY: null
+					},
+					/*The currently focused on obj*/
+					onfocus: null,
+					/*The currently mouseover obj*/
+					onover: null,
+					canvasOnFocus: false,
+					canvasOnover: false
+
+				},
+				tmp: {
+					graphID: 0,
+					onOverGraph: null,
+					toClickGraph: null,
+					matrix1: new Float32Array([1, 0, 0, 0, 1, 0]),
+					matrix2: new Float32Array([1, 0, 0, 0, 1, 0]),
+					matrix3: new Float32Array([1, 0, 0, 0, 1, 0])
+				},
+
+				root: null, //root Graph
+
+				class: {},
+
+				autoClear: true,
+				//Debug info
+				debug: {
+					switch: false,
+					count: 0,
+					FPS: 0,
+					_lastFrameTime: Date.now(),
+					_recordOffset: 0,
+					_timeRecorder: new Uint32Array(15), //记录5帧绘制时的时间来计算fps
+					on: function on() {
+						this.switch = true;
+					},
+					off: function off() {
+						this.switch = false;
 					}
-					this.font = font;
+				}
+			});
+			//set classes
+			for (var c in COL_Class) {
+				this.class[c] = COL_Class[c](this);
+			} //init root graph
+			this.root = new this.class.FunctionGraph();
+			this.root.name = 'root';
+			//this.root.drawer=null;
+			//prevent root's parentNode being modified
+			Object.defineProperty(this.root, 'parentNode', { configurable: false });
+
+			//adjust canvas drawing size
+			this.adjustCanvas();
+
+			//const canvas=this.canvas;
+			//add events
+			addEvents(canvas, {
+				mouseout: function mouseout(e) {
+					_this.stat.canvasOnover = false;
+					//clear mouse pos data
+					_this.stat.mouse.x = null;
+					_this.stat.mouse.y = null;
+					//clear onover obj
+					var onover = _this.stat.onover;
+					_this._commonEventHandle(e);
+					_this.stat.onover = null;
+				},
+				mouseover: function mouseover(e) {
+					_this.stat.canvasOnover = true;
+				},
+				mousemove: function mousemove(e) {
+					_this.tmp.toClick = false;
+					_this._commonEventHandle(e);
+				},
+				mousedown: function mousedown(e) {
+					_this.tmp.toClickGraph = _this.stat.onover;
+					_this.stat.canvasOnFocus = true;
+					_this.stat.onfocus = _this.stat.onover;
+					_this._commonEventHandle(e);
+				},
+				mouseup: function mouseup(e) {
+					return _this._commonEventHandle(e);
+				},
+				click: function click(e) {
+					if (_this.tmp.toClickGraph) _this._commonEventHandle(e);
+				},
+				dblclick: function dblclick(e) {
+					return _this._commonEventHandle(e);
+				},
+				selectstart: function selectstart(e) {
+					return e.preventDefault();
+				},
+				wheel: function wheel(e) {
+					var ce = new _this.class.WheelEvent('wheel');
+					ce.originEvent = e;
+					(_this.stat.onover || _this.root).emit(ce);
+				}
+			});
+			addEvents(document, {
+				mousedown: function mousedown(e) {
+					if (e.target !== _this.canvas) {
+						_this.stat.canvasOnFocus = false;
+					}
+				},
+				mouseout: function mouseout(e) {
+					if (_this.stat.mouse.x !== null) {
+						var eve = new window.MouseEvent('mouseout');
+						_this.canvas.dispatchEvent(eve);
+					}
+				},
+				keydown: function keydown(e) {
+					return _this._commonEventHandle(e);
+				},
+				keyup: function keyup(e) {
+					return _this._commonEventHandle(e);
+				},
+				keypress: function keypress(e) {
+					return _this._commonEventHandle(e);
+				}
+
+			});
+		}
+
+		CanvasObjLibrary.prototype.generateGraphID = function generateGraphID() {
+			return ++this.tmp.graphID;
+		};
+
+		CanvasObjLibrary.prototype.adjustCanvas = function adjustCanvas() {
+			var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.canvas.offsetWidth;
+			var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.canvas.offsetHeight;
+
+			this.root.style.width = this.canvas.width = width;
+			this.root.style.height = this.canvas.height = height;
+			var ce = new this.class.Event('resize');
+			this.root.emit(ce);
+		};
+
+		CanvasObjLibrary.prototype._commonEventHandle = function _commonEventHandle(e) {
+			if (e instanceof MouseEvent) {
+				this.stat.previousX = this.stat.mouse.x;
+				this.stat.previousY = this.stat.mouse.y;
+				if (e.type === 'mouseout') {
+					this.stat.mouse.x = null;
+					this.stat.mouse.y = null;
+				} else {
+					this.stat.mouse.x = e.layerX;
+					this.stat.mouse.y = e.layerY;
+				}
+				var ce = new this.class.MouseEvent(e.type);
+				ce.originEvent = e;
+				(this.stat.onover || this.root).emit(ce);
+			} else if (e instanceof KeyboardEvent) {
+				if (!this.stat.canvasOnFocus) return;
+				var _ce = new this.class.KeyboardEvent(e.type);
+				_ce.originEvent = e;
+				(this.stat.onfocus || this.root).emit(_ce);
+			}
+		};
+
+		CanvasObjLibrary.prototype.draw = function draw() {
+			this.debug.count = 0;
+			this.autoClear && this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.traverseGraphTree(0);
+			this.debug.switch && this.drawDebug();
+		};
+		/*
+  	traverse mode
+  		0	draw graphs and check onover graph
+  		1	check onover graph
+  */
+
+
+		CanvasObjLibrary.prototype.traverseGraphTree = function traverseGraphTree() {
+			var mode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+			this.context.setTransform(1, 0, 0, 1, 0, 0);
+			this.drawGraph(this.root, mode);
+			if (this.tmp.onOverGraph !== this.stat.onover) {
+				//new onover graph
+				var oldOnover = this.stat.onover;
+				this.tmp.toClickGraph = null;
+				this.stat.onover = this.tmp.onOverGraph;
+				if (oldOnover) {
+					var ceout = new this.class.MouseEvent('mouseout');
+					oldOnover.emit(ceout);
+				}
+
+				if (this.stat.onover) {
+					var ceover = new this.class.MouseEvent('mouseover');
+					this.stat.onover.emit(ceover);
+				}
+			}
+			this.tmp.onOverGraph = null;
+		};
+
+		CanvasObjLibrary.prototype.drawDebug = function drawDebug() {
+			var ct = this.context,
+			    d = this.debug,
+			    r = d._timeRecorder,
+			    n = Date.now();
+			//fps
+			r[d._recordOffset++] = n - d._lastFrameTime;
+			d._lastFrameTime = n;
+			if (d._recordOffset === 15) d._recordOffset = 0;
+			d.FPS = 15000 / (r[0] + r[1] + r[2] + r[3] + r[4] + r[5] + r[6] + r[7] + r[8] + r[9] + r[10] + r[11] + r[12] + r[13] + r[14]) + 0.5 | 0;
+			//draw
+			ct.save();
+			ct.beginPath();
+			ct.setTransform(1, 0, 0, 1, 0, 0);
+			ct.font = "16px Arial";
+			ct.textBaseline = "bottom";
+			ct.globalCompositeOperation = "lighter";
+			ct.fillStyle = "red";
+			ct.fillText("point:" + String(this.stat.mouse.x) + "," + String(this.stat.mouse.y) + " FPS:" + this.debug.FPS + " Items:" + this.debug.count, 0, this.canvas.height);
+			ct.fillText("onover:" + (this.stat.onover ? this.stat.onover.GID : "null") + " onfocus:" + (this.stat.onfocus ? this.stat.onfocus.GID : "null"), 0, this.canvas.height - 20);
+			ct.strokeStyle = "red";
+			ct.globalCompositeOperation = "source-over";
+			ct.moveTo(this.stat.mouse.x, this.stat.mouse.y + 6);
+			ct.lineTo(this.stat.mouse.x, this.stat.mouse.y - 6);
+			ct.moveTo(this.stat.mouse.x - 6, this.stat.mouse.y);
+			ct.lineTo(this.stat.mouse.x + 6, this.stat.mouse.y);
+			ct.stroke();
+			ct.restore();
+		};
+
+		CanvasObjLibrary.prototype.drawGraph = function drawGraph(g) {
+			var mode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+			if (g.style.hidden === true) return;
+			var ct = this.context,
+			    style = g.style,
+			    _M = this.tmp.matrix3;
+			var M = this.tmp.matrix1,
+			    tM = this.tmp.matrix2;
+			this.debug.count++;
+			ct.save();
+			if (mode === 0) {
+				style.composite && (ct.globalCompositeOperation = style.composite);
+				ct.globalAlpha = style.opacity;
+			}
+			//position & offset
+			M[0] = 1;M[1] = 0;M[2] = style.x - style.positionPointX;
+			M[3] = 0;M[4] = 1;M[5] = style.y - style.positionPointY;
+			if (style.skewX !== 1 || style.skewY !== 1) {
+				if (style.skewPointX !== 0 || style.skewPointY !== 0) {
+					_M[0] = 1;_M[1] = 0;_M[2] = style.skewPointX;_M[3] = 0;_M[4] = 1;_M[5] = style.skewPointY;
+					multiplyMatrix(M, _M, tM);
+					_M[0] = style.skewX;_M[2] = 0;_M[4] = style.skewY;_M[5] = 0;
+					multiplyMatrix(tM, _M, M);
+					_M[0] = 1;_M[2] = -style.skewPointX;_M[4] = 1;_M[5] = -style.skewPointY;
+					multiplyMatrix(M, _M, tM);
+				} else {
+					_M[0] = style.skewX;_M[1] = 0;_M[2] = 0;_M[3] = 0;_M[4] = style.skewY;_M[5] = 0;
+					multiplyMatrix(M, _M, tM);
+				}
+				M.set(tM);
+			}
+			//rotate
+			if (style.rotate !== 0) {
+				var r = style.rotate * 0.0174532925;
+				if (style.rotatePointX !== 0 || style.rotatePointY !== 0) {
+					_M[0] = 1;_M[1] = 0;_M[2] = style.rotatePointX;_M[3] = 0;_M[4] = 1;_M[5] = style.rotatePointY;
+					multiplyMatrix(M, _M, tM);
+					_M[0] = Math.cos(r);_M[1] = -Math.sin(r);_M[2] = 0;_M[3] = Math.sin(r);_M[4] = Math.cos(r);_M[5] = 0;
+					multiplyMatrix(tM, _M, M);
+					_M[0] = 1;_M[1] = 0;_M[2] = -style.rotatePointX;_M[3] = 0;_M[4] = 1;_M[5] = -style.rotatePointY;
+					multiplyMatrix(M, _M, tM);
+				} else {
+					_M[0] = Math.cos(r);_M[1] = -Math.sin(r);_M[2] = 0;_M[3] = Math.sin(r);_M[4] = Math.cos(r);_M[5] = 0;
+					multiplyMatrix(M, _M, tM);
+				}
+				M.set(tM);
+			}
+			//zoom
+			if (style.zoomX !== 1 || style.zoomY !== 1) {
+				if (style.zoomPointX !== 0 || style.zoomPointY !== 0) {
+					_M[0] = 1;_M[1] = 0;_M[2] = style.zoomPointX;_M[3] = 0;_M[4] = 1;_M[5] = style.zoomPointY;
+					multiplyMatrix(M, _M, tM);
+					_M[0] = style.zoomX;_M[2] = 0;_M[4] = style.zoomY;_M[5] = 0;
+					multiplyMatrix(tM, _M, M);
+					_M[0] = 1;_M[2] = -style.zoomPointX;_M[4] = 1;_M[5] = -style.zoomPointY;
+					multiplyMatrix(M, _M, tM);
+				} else {
+					_M[0] = style.zoomX;_M[1] = 0;_M[2] = 0;_M[3] = 0;_M[4] = style.zoomY;_M[5] = 0;
+					multiplyMatrix(M, _M, tM);
+				}
+				M.set(tM);
+			}
+			ct.transform(M[0], M[3], M[1], M[4], M[2], M[5]);
+			if (this.debug.switch && mode === 0) {
+				ct.save();
+				ct.beginPath();
+				ct.globalAlpha = 0.5;
+				ct.globalCompositeOperation = 'source-over';
+				ct.strokeStyle = g.style.debugBorderColor;
+				ct.strokeWidth = 1.5;
+				ct.strokeRect(0, 0, style.width, style.height);
+				ct.strokeWidth = 1;
+				ct.globalAlpha = 1;
+				ct.strokeStyle = 'green';
+				ct.strokeRect(style.positionPointX - 5, style.positionPointY - 5, 10, 10);
+				ct.strokeStyle = 'blue';
+				ct.strokeRect(style.rotatePointX - 4, style.rotatePointX - 4, 8, 8);
+				ct.strokeStyle = 'olive';
+				ct.strokeRect(style.zoomPointX - 3, style.zoomPointX - 3, 6, 6);
+				ct.strokeStyle = '#6cf';
+				ct.strokeRect(style.skewPointX - 2, style.skewPointX - 2, 4, 4);
+				ct.restore();
+			}
+			if (g.style.clipOverflow) {
+				ct.beginPath();
+				ct.rect(0, 0, style.width, style.height);
+				ct.clip();
+			}
+			switch (mode) {
+				case 0:
+					{
+						g.drawer && g.drawer(ct);break;
+					}
+				case 1:
+					{
+						g.checkIfOnOver(true, mode);break;
+					}
+			}
+			if (g.childNodes.length) {
+				for (var _iterator = g.childNodes, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+					var _ref;
+
+					if (_isArray) {
+						if (_i >= _iterator.length) break;
+						_ref = _iterator[_i++];
+					} else {
+						_i = _iterator.next();
+						if (_i.done) break;
+						_ref = _i.value;
+					}
+
+					var c = _ref;
+
+					this.drawGraph(c, mode);
+				}
+			}
+			ct.restore();
+		};
+
+		return CanvasObjLibrary;
+	}();
+
+	var COL_Class = {
+		Event: function Event(host) {
+			var COL = host;
+			return function Event(type) {
+				_classCallCheck(this, Event);
+
+				this.type = type;
+				this.timeStamp = Date.now();
+			};
+		},
+		GraphEvent: function GraphEvent(host) {
+			var COL = host;
+			return function (_host$class$Event) {
+				_inherits(GraphEvent, _host$class$Event);
+
+				function GraphEvent(type) {
+					_classCallCheck(this, GraphEvent);
+
+					var _this2 = _possibleConstructorReturn(this, _host$class$Event.call(this, type));
+
+					_this2.propagation = true;
+					_this2.stoped = false;
+					_this2.target = null;
+					return _this2;
+				}
+
+				GraphEvent.prototype.stopPropagation = function stopPropagation() {
+					this.propagation = false;
+				};
+
+				GraphEvent.prototype.stopImmediatePropagation = function stopImmediatePropagation() {
+					this.stoped = true;
+				};
+
+				_createClass(GraphEvent, [{
+					key: 'altKey',
+					get: function get() {
+						return this.originEvent.altKey;
+					}
+				}, {
+					key: 'ctrlKey',
+					get: function get() {
+						return this.originEvent.ctrlKey;
+					}
+				}, {
+					key: 'metaKey',
+					get: function get() {
+						return this.originEvent.metaKey;
+					}
+				}, {
+					key: 'shiftKey',
+					get: function get() {
+						return this.originEvent.shiftKey;
+					}
+				}]);
+
+				return GraphEvent;
+			}(host.class.Event);
+		},
+		MouseEvent: function MouseEvent(host) {
+			return function (_host$class$GraphEven) {
+				_inherits(MouseEvent, _host$class$GraphEven);
+
+				function MouseEvent(type) {
+					_classCallCheck(this, MouseEvent);
+
+					return _possibleConstructorReturn(this, _host$class$GraphEven.call(this, type));
+				}
+
+				_createClass(MouseEvent, [{
+					key: 'button',
+					get: function get() {
+						return this.originEvent.button;
+					}
+				}, {
+					key: 'buttons',
+					get: function get() {
+						return this.originEvent.buttons;
+					}
+				}, {
+					key: 'movementX',
+					get: function get() {
+						return host.stat.mouse.x - host.stat.previousX;
+					}
+				}, {
+					key: 'movementY',
+					get: function get() {
+						return host.stat.mouse.y - host.stat.previousY;
+					}
+				}]);
+
+				return MouseEvent;
+			}(host.class.GraphEvent);
+		},
+		WheelEvent: function WheelEvent(host) {
+			return function (_host$class$MouseEven) {
+				_inherits(WheelEvent, _host$class$MouseEven);
+
+				function WheelEvent(type) {
+					_classCallCheck(this, WheelEvent);
+
+					return _possibleConstructorReturn(this, _host$class$MouseEven.call(this, type));
+				}
+
+				_createClass(WheelEvent, [{
+					key: 'deltaX',
+					get: function get() {
+						return this.originEvent.deltaX;
+					}
+				}, {
+					key: 'deltaY',
+					get: function get() {
+						return this.originEvent.deltaY;
+					}
+				}, {
+					key: 'deltaZ',
+					get: function get() {
+						return this.originEvent.deltaZ;
+					}
+				}, {
+					key: 'deltaMode',
+					get: function get() {
+						return this.originEvent.deltaMode;
+					}
+				}]);
+
+				return WheelEvent;
+			}(host.class.MouseEvent);
+		},
+		KeyboardEvent: function KeyboardEvent(host) {
+			return function (_host$class$GraphEven2) {
+				_inherits(KeyboardEvent, _host$class$GraphEven2);
+
+				function KeyboardEvent(type) {
+					_classCallCheck(this, KeyboardEvent);
+
+					return _possibleConstructorReturn(this, _host$class$GraphEven2.call(this, type));
+				}
+
+				_createClass(KeyboardEvent, [{
+					key: 'key',
+					get: function get() {
+						return this.originEvent.key;
+					}
+				}, {
+					key: 'code',
+					get: function get() {
+						return this.originEvent.code;
+					}
+				}, {
+					key: 'repeat',
+					get: function get() {
+						return this.originEvent.repeat;
+					}
+				}, {
+					key: 'keyCode',
+					get: function get() {
+						return this.originEvent.keyCode;
+					}
+				}, {
+					key: 'charCode',
+					get: function get() {
+						return this.originEvent.charCode;
+					}
+				}, {
+					key: 'location',
+					get: function get() {
+						return this.originEvent.location;
+					}
+				}]);
+
+				return KeyboardEvent;
+			}(host.class.GraphEvent);
+		},
+		GraphEventEmitter: function GraphEventEmitter(host) {
+			var COL = host;
+			return function () {
+				function GraphEventEmitter() {
+					_classCallCheck(this, GraphEventEmitter);
+
+					this._events = {};
+				}
+
+				GraphEventEmitter.prototype.emit = function emit(e) {
+					if (e instanceof host.class.Event === false) return;
+					e.target = this;
+					this._resolve(e);
+				};
+
+				GraphEventEmitter.prototype._resolve = function _resolve(e) {
+					if (e.type in this._events) {
+						var hs = this._events[e.type];
+						try {
+							for (var _iterator2 = hs, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+								var _ref2;
+
+								if (_isArray2) {
+									if (_i2 >= _iterator2.length) break;
+									_ref2 = _iterator2[_i2++];
+								} else {
+									_i2 = _iterator2.next();
+									if (_i2.done) break;
+									_ref2 = _i2.value;
+								}
+
+								var h = _ref2;
+								h.call(this, e);if (e.stoped) return;
+							};
+						} catch (e) {
+							console.error(e);
+						}
+					}
+					if (e.propagation === true && this.parentNode) this.parentNode._resolve(e);
+				};
+
+				GraphEventEmitter.prototype.on = function on(name, handle) {
+					if (!(handle instanceof Function)) return;
+					if (!(name in this._events)) this._events[name] = [];
+					this._events[name].push(handle);
+				};
+
+				GraphEventEmitter.prototype.removeEvent = function removeEvent(name, handle) {
+					if (!(name in this._events)) return;
+					if (arguments.length === 1) {
+						delete this._events[name];return;
+					}
+					var ind = void 0;
+					if (ind = this._events[name].indexOf(handle) >= 0) this._events[name].splice(ind, 1);
+					if (this._events[name].length === 0) delete this._events[name];
+				};
+
+				return GraphEventEmitter;
+			}();
+		},
+		GraphStyle: function GraphStyle(host) {
+			return function () {
+				function GraphStyle(inhertFrom) {
+					_classCallCheck(this, GraphStyle);
+
+					if (inhertFrom && this.inhert(inhertFrom)) return;
+					this.__proto__.__proto__ = host.default.style;
+					this._calculatableStyleChanged = false;
+				}
+
+				GraphStyle.prototype.inhertGraph = function inhertGraph(graph) {
+					//inhert a graph's style
+					if (!(graph instanceof host.class.Graph)) throw new TypeError('graph is not a Graph instance');
+					this.inhertStyle(graph.style);
+					return true;
+				};
+
+				GraphStyle.prototype.inhertStyle = function inhertStyle(style) {
+					if (!(style instanceof host.class.GraphStyle)) throw new TypeError('graph is not a Graph instance');
+					this.__proto__ = style;
+					return true;
+				};
+
+				GraphStyle.prototype.inhert = function inhert(from) {
+					if (from instanceof host.class.Graph) {
+						this.inhertGraph(from);
+						return true;
+					} else if (from instanceof host.class.GraphStyle) {
+						this.inhertStyle(from);
+						return true;
+					}
+					return false;
+				};
+
+				GraphStyle.prototype.cancelInhert = function cancelInhert() {
+					this.__proto__ = Object.prototype;
+				};
+
+				GraphStyle.prototype.getPoint = function getPoint(name) {
+					switch (name) {
+						case 'center':
+							{
+								return [this.width / 2, this.height / 2];
+							}
+					}
+					return [0, 0];
+				};
+
+				GraphStyle.prototype.position = function position(x, y) {
+					this.x = x;
+					this.y = y;
+				};
+
+				GraphStyle.prototype.zoom = function zoom(x, y) {
+					if (arguments.length == 1) {
+						this.zoomX = this.zoomY = x;
+					} else {
+						this.zoomX = x;
+						this.zoomY = y;
+					}
+				};
+
+				GraphStyle.prototype.size = function size(w, h) {
+					this.width = w;
+					this.height = h;
+				};
+
+				GraphStyle.prototype.setRotatePoint = function setRotatePoint(x, y) {
+					if (arguments.length == 2) {
+						this.rotatePointX = x;
+						this.rotatePointY = y;
+					} else if (arguments.length == 1) {
+						var _getPoint = this.getPoint(x);
+
+						this.rotatePointX = _getPoint[0];
+						this.rotatePointY = _getPoint[1];
+					}
+				};
+
+				GraphStyle.prototype.setPositionPoint = function setPositionPoint(x, y) {
+					if (arguments.length == 2) {
+						this.positionPointX = x;
+						this.positionPointY = y;
+					} else if (arguments.length == 1) {
+						var _getPoint2 = this.getPoint(x);
+
+						this.positionPointX = _getPoint2[0];
+						this.positionPointY = _getPoint2[1];
+					}
+				};
+
+				GraphStyle.prototype.setZoomPoint = function setZoomPoint(x, y) {
+					if (arguments.length == 2) {
+						this.zoomPointX = x;
+						this.zoomPointY = y;
+					} else if (arguments.length == 1) {
+						var _getPoint3 = this.getPoint(x);
+
+						this.zoomPointX = _getPoint3[0];
+						this.zoomPointY = _getPoint3[1];
+					}
+				};
+
+				GraphStyle.prototype.setSkewPoint = function setSkewPoint(x, y) {
+					if (arguments.length == 2) {
+						this.skewPointX = x;
+						this.skewPointY = y;
+					} else if (arguments.length == 1) {
+						var _getPoint4 = this.getPoint(x);
+
+						this.skewPointX = _getPoint4[0];
+						this.skewPointY = _getPoint4[1];
+					}
+				};
+
+				return GraphStyle;
+			}();
+		},
+		Graph: function Graph(host) {
+			return function (_host$class$GraphEven3) {
+				_inherits(Graph, _host$class$GraphEven3);
+
+				function Graph() {
+					_classCallCheck(this, Graph);
+
+					//this.name=name;
+					var _this6 = _possibleConstructorReturn(this, _host$class$GraphEven3.call(this));
+
+					_this6.host = host;
+					_this6.GID = _this6.host.generateGraphID();
+					_this6.onoverCheck = true;
+					Object.defineProperties(_this6, {
+						style: { value: new host.class.GraphStyle(), configurable: true },
+						childNodes: { value: [] },
+						parentNode: { value: undefined, configurable: true }
+					});
+					return _this6;
+				}
+
+				Graph.prototype.createShadow = function createShadow() {
+					var shadow = Object.create(this);
+					shadow.GID = this.host.generateGraphID();
+					shadow.shadowParent = this;
+					Object.defineProperties(shadow, {
+						style: { value: new host.class.GraphStyle(this.style), configurable: true },
+						parentNode: { value: undefined, configurable: true }
+					});
+					return shadow;
+				};
+				//add a graph to childNodes' end
+
+
+				Graph.prototype.appendChild = function appendChild(graph) {
+					if (!(graph instanceof host.class.Graph)) throw new TypeError('graph is not a Graph instance');
+					if (graph === this) throw new Error('can not add myself as a child');
+					if (graph.parentNode !== this) {
+						Object.defineProperty(graph, 'parentNode', {
+							value: this
+						});
+					} else {
+						var i = this.findChild(graph);
+						if (i >= 0) this.childNodes.splice(i, 1);
+					}
+					this.childNodes.push(graph);
+				};
+				//insert this graph after the graph
+
+
+				Graph.prototype.insertAfter = function insertAfter(graph) {
+					if (!(graph instanceof host.class.Graph)) throw new TypeError('graph is not a Graph instance');
+					if (graph === this) throw new Error('can not add myself as a child');
+					var p = graph.parentNode,
+					    io = void 0,
+					    it = void 0;
+					if (!p) throw new Error('no parentNode');
+					it = p.findChild(graph);
+					//if(it<0)return false;
+					if (p !== this.parentNode) {
+						Object.defineProperty(this, 'parentNode', {
+							value: p
+						});
+					} else {
+						io = p.findChild(this);
+						if (io >= 0) p.childNodes.splice(io, 1);
+					}
+					p.childNodes.splice(io < it ? it : it + 1, 0, this);
+				};
+				//insert this graph before the graph
+
+
+				Graph.prototype.insertBefore = function insertBefore(graph) {
+					if (!(graph instanceof host.class.Graph)) throw new TypeError('graph is not a Graph instance');
+					if (graph === this) throw new Error('can not add myself as a child');
+					var p = graph.parentNode,
+					    io = void 0,
+					    it = void 0;
+					if (!p) throw new Error('no parentNode');
+					it = p.findChild(graph);
+					//if(it<0)return false;
+					if (p !== this.parentNode) {
+						Object.defineProperty(this, 'parentNode', {
+							value: p
+						});
+					} else {
+						io = p.findChild(this);
+						if (io >= 0) p.childNodes.splice(io, 1);
+					}
+					p.childNodes.splice(io < it ? it - 1 : it, 0, this);
+				};
+
+				Graph.prototype.findChild = function findChild(graph) {
+					for (var i = this.childNodes.length; i--;) {
+						if (this.childNodes[i] === graph) return i;
+					}return -1;
+				};
+
+				Graph.prototype.removeChild = function removeChild(graph) {
+					var i = this.findChild(graph);
+					if (i < 0) return;
+					this.childNodes.splice(i, 1);
+					Object.defineProperty(this, 'parentNode', {
+						value: undefined
+					});
+				};
+
+				Graph.prototype.checkIfOnOver = function checkIfOnOver() {
+					var runHitRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+					var mode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+					if (this.onoverCheck === false || !this.hitRange) return false;
+					var m = this.host.stat.mouse;
+					if (m.x === null) return false;
+					if (this === this.host.tmp.onOverGraph) return true;
+					runHitRange && this.hitRange(this.host.context);
+					if (mode === 0 && this.host.debug.switch) {
+						this.host.context.save();
+						this.host.context.strokeStyle = 'yellow';
+						this.host.context.stroke();
+						this.host.context.restore();
+					}
+					if (this.host.context.isPointInPath(m.x, m.y)) {
+						this.host.tmp.onOverGraph = this;
+						return true;
+					}
+					return false;
+				};
+
+				Graph.prototype.delete = function _delete() {
+					//remove it from the related objects
+					if (this.parentNode) this.parentNode.removeChild(this);
+					if (this.host.stat.onover === this) this.host.stat.onover = null;
+					if (this.host.stat.onfocus === this) this.host.stat.onfocus = null;
+				};
+
+				return Graph;
+			}(host.class.GraphEventEmitter);
+		},
+		FunctionGraph: function FunctionGraph(host) {
+			return function (_host$class$Graph) {
+				_inherits(FunctionGraph, _host$class$Graph);
+
+				function FunctionGraph(drawer) {
+					_classCallCheck(this, FunctionGraph);
+
+					var _this7 = _possibleConstructorReturn(this, _host$class$Graph.call(this));
+
+					if (drawer instanceof Function) {
+						_this7.drawer = drawer;
+					}
+					_this7.style.debugBorderColor = '#f00';
+					return _this7;
+				}
+
+				FunctionGraph.prototype.drawer = function drawer(ct) {
+					//onover point check
+					this.checkIfOnOver(true);
+				};
+
+				FunctionGraph.prototype.hitRange = function hitRange(ct) {
+					ct.beginPath();
+					ct.rect(0, 0, this.style.width, this.style.height);
+				};
+
+				return FunctionGraph;
+			}(host.class.Graph);
+		},
+		ImageGraph: function ImageGraph(host) {
+			return function (_host$class$FunctionG) {
+				_inherits(ImageGraph, _host$class$FunctionG);
+
+				function ImageGraph(image) {
+					_classCallCheck(this, ImageGraph);
+
+					var _this8 = _possibleConstructorReturn(this, _host$class$FunctionG.call(this));
+
+					if (image) _this8.use(image);
+					_this8.style.debugBorderColor = '#0f0';
+					return _this8;
+				}
+
+				ImageGraph.prototype.use = function use(image) {
+					var _this9 = this;
+
+					if (image instanceof Image) {
+						this.image = image;
+						if (!image.complete) {
+							image.addEventListener('load', function (e) {
+								_this9.resetStyleSize();
+							});
+						} else {
+							this.resetStyleSize();
+						}
+						return true;
+					} else if (image instanceof HTMLCanvasElement) {
+						this.image = image;
+						this.resetStyleSize();
+						return true;
+					}
+					throw new TypeError('Wrong image type');
+				};
+
+				ImageGraph.prototype.resetStyleSize = function resetStyleSize() {
+					this.style.width = this.width;
+					this.style.height = this.height;
+				};
+
+				ImageGraph.prototype.drawer = function drawer(ct) {
+					//onover point check
+					//ct.beginPath();
+					ct.drawImage(this.image, 0, 0);
+					this.checkIfOnOver(true);
+				};
+
+				ImageGraph.prototype.hitRange = function hitRange(ct) {
+					ct.beginPath();
+					ct.rect(0, 0, this.style.width, this.style.height);
+				};
+
+				_createClass(ImageGraph, [{
+					key: 'width',
+					get: function get() {
+						if (this.image instanceof Image) return this.image.naturalWidth;
+						if (this.image instanceof HTMLCanvasElement) return this.image.width;
+						return 0;
+					}
+				}, {
+					key: 'height',
+					get: function get() {
+						if (this.image instanceof Image) return this.image.naturalHeight;
+						if (this.image instanceof HTMLCanvasElement) return this.image.height;
+						return 0;
+					}
+				}]);
+
+				return ImageGraph;
+			}(host.class.FunctionGraph);
+		},
+		CanvasGraph: function CanvasGraph(host) {
+			return function (_host$class$ImageGrap) {
+				_inherits(CanvasGraph, _host$class$ImageGrap);
+
+				function CanvasGraph() {
+					_classCallCheck(this, CanvasGraph);
+
+					var _this10 = _possibleConstructorReturn(this, _host$class$ImageGrap.call(this));
+
+					_this10.image = document.createElement('canvas');
+					_this10.context = _this10.image.getContext('2d');
+					_this10.autoClear = true;
+					return _this10;
+				}
+
+				CanvasGraph.prototype.draw = function draw(func) {
+					if (this.autoClear) this.context.clearRect(0, 0, this.width, this.height);
+					func(this.context);
+				};
+
+				_createClass(CanvasGraph, [{
+					key: 'width',
+					set: function set(w) {
+						this.image.width = w;
+					}
+				}, {
+					key: 'height',
+					set: function set(h) {
+						this.image.height = h;
+					}
+				}]);
+
+				return CanvasGraph;
+			}(host.class.ImageGraph);
+		},
+		TextGraph: function TextGraph(host) {
+			return function (_host$class$FunctionG2) {
+				_inherits(TextGraph, _host$class$FunctionG2);
+
+				function TextGraph() {
+					var text = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+					_classCallCheck(this, TextGraph);
+
+					//this._cache=null;
+					var _this11 = _possibleConstructorReturn(this, _host$class$FunctionG2.call(this));
+
+					_this11._fontString = '';
+					_this11._renderList = null;
+					_this11.autoSize = true;
+					_this11.font = Object.create(host.default.font);
+					_this11.realtimeRender = false;
+					_this11.style.debugBorderColor = '#00f';
+					_this11.text = text;
+					Object.defineProperty(_this11, '_cache', { configurable: true });
+					return _this11;
+				}
+
+				TextGraph.prototype.prepare = function prepare() {
+					//prepare text details
+					if (!this._cache && !this.realtimeRender) {
+						Object.defineProperty(this, '_cache', { value: document.createElement("canvas") });
+					}
+					var font = "";
+					this.font.fontStyle && (font = this.font.fontStyle);
+					this.font.fontVariant && (font = font + ' ' + this.font.fontVariant);
+					this.font.fontWeight && (font = font + ' ' + this.font.fontWeight);
+					font = font + ' ' + this.font.fontSize + 'px';
+					this.font.fontFamily && (font = font + ' ' + this.font.fontFamily);
+					this._fontString = font;
+
+					if (this.realtimeRender) return;
+					var imgobj = this._cache,
+					    ct = imgobj.getContext("2d");
 					ct.font = font;
-					this.plusoffsetX = this.shadowBlur + (this.shadowOffset.x < 0 ? -this.shadowOffset.x: 0);
-					this.plusoffsetY = this.shadowBlur + (this.shadowOffset.y < 0 ? -this.shadowOffset.y: 0);
-					var addedwidth = this.shadowBlur * 2 + Math.abs(this.shadowOffset.x),
-					addedheight = this.shadowBlur * 2 +this.fontSize+ Math.abs(this.shadowOffset.y);
+					ct.clearRect(0, 0, imgobj.width, imgobj.height);
+					this._renderList = this.text.split(/\n/g);
+					this.estimatePadding = Math.max(this.font.shadowBlur + 5 + Math.max(Math.abs(this.font.shadowOffsetY), Math.abs(this.font.shadowOffsetX)), this.font.strokeWidth + 3);
 					if (this.autoSize) {
 						var w = 0,
-						tw;
-						if (this.linedirection === 0) {
-							for (var i = 0; i < this.varylist.length; i++) {
-								tw = ct.measureText(this.varylist[i]).width;
-								w = tw > w ? tw: w;
-							}
-							imgobj.width = (this.width = (this.maxWidth >= w) ? this.maxWidth: w) + addedwidth;
-							imgobj.height = (this.height = this.varylist.length * (this.lineHeight > this.fontSize ? this.lineHeight: this.fontSize)) + addedheight;
-						} else if (this.linedirection == 1) {
-							for (var i = 0; i < this.varylist.length; i++) {
-								tw = this.varylist[i].length;
-								w = tw > w ? tw: w;
-							}
-							w *= this.fontSize;
-							imgobj.width = (this.width = this.varylist.length * (this.lineHeight > this.fontSize ? this.lineHeight: this.fontSize)) + addedwidth;
-							imgobj.height = (this.height = (this.maxWidth >= w) ? this.maxWidth: w) + addedheight;
+						    tw = void 0,
+						    lh = typeof this.font.lineHeigh === 'number' ? this.font.lineHeigh : this.font.fontSize;
+						for (var i = this._renderList.length; i--;) {
+							tw = ct.measureText(this._renderList[i]).width;
+							tw > w && (w = tw); //max
 						}
-
+						imgobj.width = (this.style.width = w) + this.estimatePadding * 2;
+						imgobj.height = (this.style.height = this._renderList.length * lh) + (lh < this.font.fontSize) ? this.font.fontSize * 2 : 0 + this.estimatePadding * 2;
 					} else {
-						imgobj.width = (this.width >= 0) ? this.width: 100;
-						imgobj.height = (this.height >= 0) ? this.height: 30;
+						imgobj.width = this.style.width;
+						imgobj.height = this.style.height;
 					}
-					ct.transform(1, 0, 0, 1, this.plusoffsetX, this.plusoffsetY);
-					this.vary(ct);
-				},
-				setSize: function(width, height) {
-					this.autoSize = false;
-					this.width = width;
-					this.height = height;
-					this.prepareText();
-				},
-				setText: function(text) {
-					this.text = text || " ";
-					this.prepareText();
-				}
-			},
-			Event: {
-				addEvent: function(name, fun) {
-					if (typeof name == "string") name = name.replace(/^on/, "");
-					this.events[name]||(this.events[name] = []);
-					if (typeof(fun) == "function" && this.events[name]) {
-						this.events[name].push(fun);
-						var eid = (++COL.tmpEventID);
-						this.events[name][this.events[name].length - 1].EventID = eid;
-						var ev = {
-							ename: name,
-							EventID: eid
-						};
-						return ev;
+					ct.translate(this.estimatePadding, this.estimatePadding);
+					this.render(ct);
+				};
+
+				TextGraph.prototype.render = function render(ct) {
+					//render text
+					if (!this._renderList) return;
+					ct.font = this._fontString; //set font
+					ct.textBaseline = 'top';
+					ct.lineWidth = this.font.strokeWidth;
+					ct.fillStyle = this.font.color;
+					ct.strokeStyle = this.font.strokeColor;
+					ct.shadowBlur = this.font.shadowBlur;
+					ct.shadowOffsetX = this.font.shadowOffsetX;
+					ct.shadowOffsetY = this.font.shadowOffsetY;
+					for (var i = this._renderList.length; i--;) {
+						this.font.fill && ct.fillText(this._renderList[i], 0, this.font.lineHeight * i);
+						this.font.strokeWidth && ct.strokeText(this._renderList[i], 0, this.font.lineHeight * i);
+					}
+				};
+
+				TextGraph.prototype.drawer = function drawer(ct) {
+					//ct.beginPath();
+					if (this.realtimeRender) {
+						//realtime render the text
+						//onover point check
+						this.checkIfOnOver(true);
+						this.render(ct);
 					} else {
-						return false;
-					}
-				},
-				removeEvent: function(ev) {
-					if (typeof ev.ename == "string") ev.ename.replace(/^on/, "");
-					if (this.events && this.events[ev.ename]) {
-						var earr = this.events[ev.ename];
-						var middleindex, starti = 0,
-						endi = earr.length - 1,
-						evid = ev.EventID;
-						while (endi - starti) { //当前后定位不重合
-							middleindex = Math.floor((starti + endi) / 2);
-							if (earr[middleindex].EventID == evid) {
-								earr.splice(middleindex, 1);
-								break;
-							} else if (earr[middleindex + 1].EventID > evid) {
-								endi = middleindex;
-							} else {
-								starti = middleindex + 1;
-							}
+						//draw the cache
+						if (!this._cache) {
+							this.prepare();
 						}
+						ct.drawImage(this._cache, -this.estimatePadding, -this.estimatePadding);
+						this.checkIfOnOver(true);
 					}
+				};
 
-				},
-				fireEvent: function(evename, eobj) {
-					var events = this.events;
-					if (events && events[evename]) {
-						for (var i = events[evename].length; i--;) {
-							if (typeof(events[evename][i]) == "function") {
-								events[evename][i](eobj);
-							}
-						}
-					}
-					if (eobj.Propagation) {
-						if (this.parentNode) {
-							this.parentNode.fireEvent(evename, eobj);
-						}else{
-							delete eobj;
-						}
-					}
-				}
-			}
-		},
-		Delete: function(graph) {
-			if (graph) {
-				if (graph.parentNode) {
-					graph.parentNode.removeChild(graph);
-				}
-				if (typeof graph.pricolor == "object") {
-					var a = graph.pricolor;
-					COL.colorarray.splice(a[0] * 1000000 + a[1] * 1000 + a[2], 1);
-				}
-				delete graph;
-				return true;
-			}
-			return false;
-		}
-	};
-	var cF=COL.Graph.commonFunction;
-	COL.Graph.rawObj={
-		baseobj:{
-			name: null,
-			y: 0,
-			x: 0,
-			width: 1,
-			height: 1,
-			rotate: 0,
-			display: true,
-			opacity: null,
-			beforedrawfun: null,
-			afterdrawfun: null,
-			overflow: null,
-			drawtype: "function",
-			//function、image、text
-			drawfunction: null,
-			backgroundColor: null,
-			eventable: false,
-			imageobj: null,
-			needsort: false,
-			z_index: null,
-			clipBy: "border",
-			parentNode: null,
-			usematrix:true,
-			set: cF.set,
-			drawpic: cF.drawpic,
-			setZoom: cF.setZoom,
-			useImage: cF.useImage,
-			borderPathFun: cF.borderPathFun,
-			zindex: cF.zindex,
-			setRotateCenter: cF.setRotateCenter,
-			setPositionPoint: cF.setPositionPoint,
-			setSize: cF.setSize,
-			New: cF.New,
-			clone: cF.clone,
-			addChild: cF.addChild,
-			removeChild: cF.removeChild,
-			fireEvent: cF.Event.fireEvent,
-			setMatrix: cF.setMatrix,
-			overPath:null,
-			addEvent:cF.Event.addEvent,
-			removeEvent:cF.Event.removeEvent
-		}
-	};
-	COL.drawElement = function(d, ct) {
-		for (var i = 0; i < d.length; i++) {
-			if (d[i].display) {
-				cObj = d[i];
-				ct.save();
-				COL.transform(ct, cObj);
-				if (COL.Debug.stat) {
-					ct.save();
-					var rotatex=cObj.relativerotatecenter.x?cObj.relativerotatecenter.x*cObj.width:cObj.rotatecenter.x,
-					rotatey=cObj.relativerotatecenter.y?cObj.relativerotatecenter.y*cObj.height:cObj.rotatecenter.y;
+				TextGraph.prototype.hitRange = function hitRange(ct) {
 					ct.beginPath();
-					ct.moveTo(rotatex, rotatey+3);
-					ct.lineTo(rotatex, rotatey-3);
-					ct.moveTo(rotatex+3, rotatey);
-					ct.lineTo( rotatex- 3, rotatey);
-					ct.stroke();
-					ct.restore();
-				}
-				if (cObj.opacity !== null){
-					if(cObj.opacity>=0){ct.globalAlpha = cObj.opacity;}else{
-						ct.globalAlpha =0;
-					}
-				}
-				if (cObj.overflow == "hidden") {
-					ct.beginPath();
-					switch (cObj.clipBy) {
-					case "border":
-						{
-							cObj.borderPathFun ? cObj.borderPathFun(ct) : COL.tools.defaultPathFun(ct, cObj);
-							break;
-						}
-					case "drawfunction":
-						{
-							cObj.drawfunction ? cObj.drawfunction(ct) : COL.tools.defaultPathFun(ct, cObj);
-							break;
-						}
-					default:
-						{
-							COL.tools.defaultPathFun(ct, cObj);
-						}
-					}
-					ct.clip();
-				}
-				ct.save();
-				cObj.Composite&&(ct.globalCompositeOperation = cObj.Composite);
-				cObj.beforedrawfun&&cObj.beforedrawfun(ct);
-				if (cObj.backgroundColor) {
-					ct.fillStyle = cObj.backgroundColor;
-					ct.fillRect(0, 0, cObj.width, cObj.height);
-				}
-				switch (cObj.drawtype) {
-				case "function":
-					{
-						if (cObj.drawfunction) {
-							ct.save();
-							cObj.drawfunction(ct);
-							ct.restore();
-						}	
-						break;
-					}
-				case "image":
-					{
-						(cObj.imageobj && cObj.imageobj.width && cObj.imageobj.height) &&ct.drawImage(cObj.imageobj, 0, 0);
-						break;
-					}
-				case "text":
-					{
-						if (cObj.realtimeVary) {
-							ct.save();
-							cObj.vary(ct);
-							ct.restore();
-						} else {
-							if (cObj.imageobj && cObj.imageobj.width && cObj.imageobj.height) {
-								ct.save();
-								ct.transform(1, 0, 0, 1, -cObj.plusoffsetX, -cObj.plusoffsetY);
-								ct.drawImage(cObj.imageobj, 0, 0);
-								if (COL.Debug.stat) {
-									ct.strokeStyle = "#ccc";
-									ct.strokeRect(0, 0, cObj.imageobj.width, cObj.imageobj.height);
-									ct.transform(1, 0, 0, 1, cObj.plusoffsetX, cObj.plusoffsetY);
-								}
-								ct.restore();
-							}
-						}
-						break;
-					}
-				}
-				if (COL.Debug.stat) {
-					COL.Debug.itemcount++;
-					ct.save();
-					ct.beginPath();
-					ct.strokeRect(0, 0, cObj.width, cObj.height);
-					var zx = cObj.zoom.x,
-					zy = cObj.zoom.y;
-					if (cObj.parentNode) {
-						zx *= cObj.parentNode.zoom.x;
-						zy *= cObj.parentNode.zoom.y;
-					}
-					ct.scale(1 / zx, 1 / zy);
-					ct.textBaseline = "top";
-					ct.fillStyle = "rgba(0,0,0,1)";
-					ct.font = "20px Arial";
-					switch (cObj.drawtype) {
-					case "function":
-						{
-							ct.fillText("Function", 0, 0);
-							break;
-						}
+					ct.rect(0, 0, this.style.width, this.style.height);
+				};
 
-					case "image":
-						{
-							ct.fillText("Image", 0, 0);
-							break;
-						}
-					case "text":
-						{
-							ct.fillText("Text", 0, 0);
-							ct.font = "12px Arial";
-							ct.fillText("font:" + cObj.font, 0, -12);
-							break;
-						}
-					}
-					if (COL.Debug.eleinfo) {
-						ct.font = "10px Arial";
-						ct.fillText("X:" + cObj.x + " " + "Y:" + cObj.y, 0, 21);
-						ct.fillText("rotate:" + cObj.rotate, 0, 31);
-						ct.fillText("zoom:" + cObj.zoom.x + "," + cObj.zoom.y, 0, 41);
-						ct.fillText("RotatePotint:" + cObj.rotatecenter.x + " " + cObj.rotatecenter.y, 0, 51);
-						ct.fillText("Size:" + cObj.width + "*" + cObj.height, 0, 61);
-					}
-					ct.restore();
-				}
-				cObj.afterdrawfun&&cObj.afterdrawfun(ct);
-				ct.restore();
-				cObj.childNode.length&&COL.drawElement(cObj.drawlist, ct);
-				ct.restore();
-			}
-		}
-	};
-	/*
-	事件对象绘制函数
-	用来把有事件的对象用特定颜色画到隐藏画布上，供鼠标判定用
-	绘制规则：
-		如果对象有eventRange函数来描述事件响应范围，那么将调用这个函数并传入参数(context,颜色)，由此函数绘制对象色块
-		如果没有eventRange函数，function类型的对象无法被识别，图片和文字类型的对象默认使用所在矩形范围做响应范围
-	*/
-	COL.drawEventobj = function(d, ct) {
-		for (var i = 0; i < d.length; i++) {
-			if (d[i].display) {
-				cObj = d[i];
-				ct.save();
-				COL.transform(ct, cObj);
-				ct.save();
-				if (cObj.eventable) {
-					var color = "rgb(" + cObj.pricolor[0] + "," + cObj.pricolor[1] + "," + cObj.pricolor[2] + ")";
-					if (typeof(cObj.eventRange) == "function") {
-						cObj.eventRange(ct, color);
-					} else {
-						switch (cObj.drawtype) {
-						case "image":
-						case "text":
-							{
-								ct.fillStyle = color;
-								ct.fillRect(0, 0, cObj.width, cObj.height);
-								break;
-							}
-						}
-					}
-				}
-				ct.restore();
-				if (cObj.childNode.length) {
-					COL.drawEventobj(cObj.drawlist, ct);
-				}
-				ct.restore();
-			}
+				return TextGraph;
+			}(host.class.FunctionGraph);
 		}
 	};
 
-	COL.F_drawEventobj = function() {
-		COL.eocct.clearRect(0, 0, COL.canvas.width, COL.canvas.height);
-		COL.drawEventobj(COL.drawlist, COL.eocct);
+	function multiplyMatrix(m1, m2, r) {
+		r[0] = m1[0] * m2[0] + m1[1] * m2[3];
+		r[1] = m1[0] * m2[1] + m1[1] * m2[4];
+		r[2] = m1[0] * m2[2] + m1[1] * m2[5] + m1[2];
+		r[3] = m1[3] * m2[0] + m1[4] * m2[3];
+		r[4] = m1[3] * m2[1] + m1[4] * m2[4];
+		r[5] = m1[3] * m2[2] + m1[4] * m2[5] + m1[5];
 	}
-	/*把队列中的图形按index绘制出来*/
-	/*draw all graphs whose [display=true]*/
-	// var cct;
-	COL.draw = function() {
-		//COL.newonoverElement = null;
-		var cct = COL.cct;
-		COL.Debug.itemcount = 0;
-		cct.setTransform(1,0,0,1,0,0);
-		COL.autoClear&&cct.clearRect(0, 0, COL.width, COL.height);
-		COL.drawElement(COL.drawlist, COL.currentcontext);
-		if (COL.matrixchanged === true || COL.MatrixTransformMode === false) {
-			COL.F_drawEventobj();
-			COL.matrixchanged = false;
-		}
-		if (COL.Debug.stat) {
-			cct.globalAlpha = 0.2;
-			cct.drawImage(COL.eventobjcanvas, 0, 0);
-			cct.globalAlpha = 1;
-			COL.Graph.commonFunction.drawDebugstat(cct);
-		}
-	};
 
-	COL.tools = {
-		baseMatrix:function(){return new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);},
-		matrix: new Float32Array(9),
-		multiplyMatrix: function() {
-			var mats = arguments;
-			if (mats) {
-				if (mats.length-1 > 1) {
-					var mp, mn,
-					ta = COL.tools.matrix,
-					out=mats[mats.length-1];
-					for (var i = mats.length-1; i--;) {
-						var pm = i - 1;
-						if (pm >= 0) {
-							mp = mats[pm];
-							mn = mats[i];
-							ta[0] = mp[0] * mn[0] + mp[1] * mn[3] + mp[2] * mn[6];
-							ta[1] = (mp[0] + mn[4]) * mn[1] + mp[2] * mn[7];
-							ta[2] = (mp[0] + mn[8]) * mn[2] + mp[1] * mn[5];
-							ta[3] = mp[3] * (mn[0] + mp[4]) + mp[5] * mn[6];
-							ta[4] = mp[3] * mn[1] + mp[4] * mn[4] + mp[5] * mn[7];
-							ta[5] = mp[3] * mn[2] + (mp[4] + mn[8]) * mn[5];
-							mats[pm] = ta;
-						}
+	window.CanvasObjLibrary = CanvasObjLibrary;
+
+	//code from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
+	if (typeof Object.assign != 'function') Object.assign = function (target) {
+		'use strict';
+		// We must check against these specific cases.
+
+		if (target === undefined || target === null) {
+			throw new TypeError('Cannot convert undefined or null to object');
+		}
+		var output = Object(target);
+		for (var index = 1; index < arguments.length; index++) {
+			var source = arguments[index];
+			if (source !== undefined && source !== null) {
+				for (var nextKey in source) {
+					if (source.hasOwnProperty(nextKey)) {
+						output[nextKey] = source[nextKey];
 					}
-					for(i=0;i<9;i++)out[i]=ta[i];
 				}
-			} 
-		},
-
-		getnum: function(string) { //提取字符串里首次出现的数字串
-			if(string)return 0;
-			else {
-				var a = Number(string.match(/\d+/)[0]);
-				if (a) return a;
-				else return 0;
-			}
-		},
-		findEmptyPlace: function(array) {
-			var i = 0;
-			while (array[i]) i++;
-			return i;
-		},
-		Linear: {
-			go: function(start, end, time, func, _hz) {
-				iwindow.linear||(window.linear = []);
-				var ind = COL.tools.findEmptyPlace(window.linear);
-				var linear = window.linear[ind] = {};
-				linear.start = start;
-				linear.end = end;
-				linear.time = time;
-				linear.process = linear.c = linear.precentage = 0;
-				linear.func = func;
-				linear.hz = _hz || 30;
-				linear.totalc = time / 1000 * linear.hz;
-				linear.part = (end - start) / linear.totalc;
-				linear.i = setInterval(function() {
-					linear.c++;
-					linear.process += linear.part;
-					linear.precentage = linear.c / linear.totalc;
-					if (linear.c > linear.totalc) {
-						clearInterval(linear.i);
-						func(linear.end);
-						for (var n in linear) {
-							delete linear[n];
-						}
-						linear = null;
-						return;
-					}
-					func(linear.process);
-				},
-				1000 / linear.hz);
-				return linear;
-			},
-			continue: function(linear) {
-				if (!linear.i) {
-					linear.i = setInterval(function() {
-						linear.c++;
-						linear.process += linear.part;
-						linear.precentage = linear.c / linear.totalc;
-						if (linear.c > linear.totalc) {
-							clearInterval(linear.i);
-							linear.func(linear.end);
-							for (var n in linear) {
-								delete linear[n];
-							}
-							linear = null;
-							return;
-						}
-						linear.func(linear.process);
-					},
-					1000 / linear.hz);
-				}
-
-			},
-			pause: function(linear) {
-				clearInterval(linear.i);
-				linear.i = null;
-			},
-			stop: function(linear) {
-				clearInterval(linear.i);
-				for (var n in linear) {
-					delete n;
-				}
-				linear = null;
-			},
-			setProcess: function(linear, precentage) {
-				if (! (linear.func && precentage >= 0 && precentage <= 1)) return;
-				linear.c = linear.time * precentage / 1000 * linear.hz;
-				linear.precentage = linear.c / linear.totalc;
-				linear.process = linear.c * linear.part;
-				linear.func(linear.process);
-			}
-		},
-		sortrule: function(a, b) { //index的排序规则
-			return a.z_index - b.z_index;
-		},
-		get_a_color: function() {
-			return new Uint8Array([COL.tools.rand(0, 255), COL.tools.rand(0, 255), COL.tools.rand(0, 255)]);
-		},
-		get_a_unique_color: function(e) {
-			if (!COL.document.pricolor) {
-				COL.colorarray[255255255] = COL.document;
-				return new Uint8Array([255, 255, 255]);
-			}
-			var a, num;
-			do {
-				a = COL.tools.get_a_color();
-				num = a[0] * 1000000 + a[1] * 1000 + a[2];
-			} while ( COL . colorarray [ num ] != undefined);
-			COL.colorarray[num] = e;
-			return a;
-		},
-		arraybyZ_index: function(graph) { //让图形的子元素排序
-			if (graph.childNode) {
-				graph.drawlist = graph.childNode.slice(0);
-				graph.drawlist.sort(COL.tools.sortrule);
-				for (var i = 0; graph.drawlist[i]; i++) {}
-				graph.drawlist.length = i;
-			}
-		},
-		defaultPathFun: function(ct, graph) {
-			ct.rect(0, 0, graph.width, graph.height);
-		},
-		addEventListener: function(dom, e, fun) {
-			if (dom.addEventListener) dom.addEventListener(e, fun, false);
-			else if (dom.attachEvent) dom.attachEvent(e, fun);
-			else {
-				dom[e] = fun;
-			}
-		},
-		getBrowser: function() { //识别浏览器
-			var b = navigator.userAgent.toLowerCase().match(/MSIE|Firefox|Opera|Safari|Chrome|trident/i);
-			if (b.length) b = b[0];
-			else b = "unknow";
-			return b;
-		},
-		rand: function(min, max) { //范围随机数
-			return Math.floor(min + Math.random() * (max - min));
-		},
-		fpscounter: function() {
-			COL.fps.v = COL.fps.c;
-			COL.fps.c = 0;
-		},
-		clone:function(o){
-			if(typeof(o) != 'object')return o;
-			if(o == null) return o;
-			var nob ={};
-			for(var i in o)
-				nob[i] = COL.tools.clone(o[i]);
-			return nob;
-		}
-	};
-
-	COL.Debug = {
-		stat: false,
-		eleinfo: false,
-		itemcount: 0,
-		on: function() {
-			if (!COL.Debug.stat) {
-				COL.Debug.stat = true;
-				clearInterval(COL.fps.i);
-				COL.fps.c = 0;
-				COL.fps.i = setInterval(COL.tools.fpscounter, 1000);
-			}
-		},
-		off: function() {
-			if (COL.Debug.stat) {
-				COL.Debug.stat = false;
-				clearInterval(COL.fps.i);
 			}
 		}
+		return output;
 	};
-	return COL;
-}; (function() {
-	var lastTime = 0;
-	var vendors = ['ms', 'moz', 'webkit', 'o'];
-	for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-		window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-		window.cancelRequestAnimationFrame = window[vendors[x] + 'CancelRequestAnimationFrame'];
+
+	if (!Float32Array.__proto__.from) {
+		(function () {
+			var copy_data = [];
+			Float32Array.__proto__.from = function (obj, func, thisObj) {
+				var typedArrayClass = Float32Array.__proto__;
+				if (typeof this !== "function") throw new TypeError("# is not a constructor");
+				if (this.__proto__ !== typedArrayClass) throw new TypeError("this is not a typed array.");
+				func = func || function (elem) {
+					return elem;
+				};
+				if (typeof func !== "function") throw new TypeError("specified argument is not a function");
+				obj = Object(obj);
+				if (!obj["length"]) return new this(0);
+				copy_data.length = 0;
+				for (var i = 0; i < obj.length; i++) {
+					copy_data.push(obj[i]);
+				}
+				copy_data = copy_data.map(func, thisObj);
+				var typed_array = new this(copy_data.length);
+				for (var _i3 = 0; _i3 < typed_array.length; _i3++) {
+					typed_array[_i3] = copy_data[_i3];
+				}
+				return typed_array;
+			};
+		})();
 	}
-	if (!window.requestAnimationFrame) window.requestAnimationFrame = function(callback, element, interval) {
-		var currTime = new Date().getTime();
-		var timeToCall = interval || (Math.max(0, 1000 / 60 - (currTime - lastTime)));
-		callback(0);
-		var id = window.setTimeout(function() {
-			callback(currTime + timeToCall);
-		},
-		timeToCall);
-		lastTime = currTime + timeToCall;
-		return id;
-	};
-	if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function(id) {
-		clearTimeout(id);
-	};
-} ());
+
+	(function () {
+		if (window.requestAnimationFrame) return;
+		var lastTime = 0;
+		var vendors = ['ms', 'moz', 'webkit', 'o'];
+		for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+			window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+			window.cancelRequestAnimationFrame = window[vendors[x] + 'CancelRequestAnimationFrame'];
+		}
+		if (!window.requestAnimationFrame) window.requestAnimationFrame = function (callback, element, interval) {
+			var currTime = Date.now();
+			var timeToCall = interval || Math.max(0, 1000 / 60 - (currTime - lastTime));
+			callback(0);
+			var id = window.setTimeout(function () {
+				callback(currTime + timeToCall);
+			}, timeToCall);
+			lastTime = currTime + timeToCall;
+			return id;
+		};
+		if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function (id) {
+			clearTimeout(id);
+		};
+	})();
+})();
