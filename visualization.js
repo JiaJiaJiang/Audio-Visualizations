@@ -235,7 +235,7 @@ function AudioVisualization(canvas,audio){
 	function anime(){
 		//设置一下圆圈的缩放
 		pie.style.zoom(1+(frequencyArray[5]+frequencyArray[0])/2/680);
-		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.25));
+		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.1));
 		fre3.style.opacity=frequencyArray[fre3.start]/700;
 		COL.draw();
 		if(visualization.frequencyDebug)drawFrequencyDebug();
