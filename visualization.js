@@ -108,7 +108,7 @@ function AudioVisualization(canvas,audio){
 	fre1.reduceFirst=1;
 	fre1.closePath=true;
 	fre1.base=240;
-	fre1.style.opacity=0.2;
+	fre1.style.opacity=0.4;
 	fre1.toCenterRate=0.4;
 	freFrame.appendChild(fre1);
 
