@@ -254,7 +254,7 @@ function AudioVisualization(canvas,audio){
 	function anime(){
 		//设置一下圆圈的缩放
 		fre2.style.rotate-=0.14;
-		fre1.distance-=0.00005;
+		fre1.distance-=0.00005*frequencyArray[0]/120;
 		fre3.distance+=0.00001;
 		audio.paused&&ooooops();
 		pie.style.zoom(1+Math.pow((frequencyArray[5]+frequencyArray[0])>>1,4)/9500000000);
