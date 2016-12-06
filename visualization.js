@@ -82,7 +82,7 @@ function AudioVisualization(canvas,audio){
 			centerV=(frequencyArray[this.start]+frequencyArray[this.end])/2;
 		for (var i = this.start; i <= this.end; i++) {
 			f=(this.start===i);
-			l=(this.base+To(frequencyArray[i]*(f?this.reduceFirst:1),centerV,this.toCenterRate||0.1))*this.reduce;
+			l=(this.base+To(frequencyArray[i]*(f?this.reduceFirst:1),centerV,this.toCenterRate||0))*this.reduce;
 			ct[f?'moveTo':'lineTo'](
 				l*Math.sin(i*this.distance),
 				-l*Math.cos(i*this.distance)
@@ -110,6 +110,7 @@ function AudioVisualization(canvas,audio){
 	fre1.base=240;
 	fre1.style.opacity=0.4;
 	fre1.toCenterRate=0.4;
+	fre1.hidden=true;
 	freFrame.appendChild(fre1);
 
 	var fre2=this.fre2=freTemplate.createShadow();
@@ -136,7 +137,7 @@ function AudioVisualization(canvas,audio){
 	fre3.toCenterRate=0.74;
 	fre3.style.opacity=0.16;
 	//fre3.fillColor='#353535'/*'rgb(235,234,230)'*/;
-	fre3.style.rotate=180;
+	//fre3.style.rotate=180;
 	fre3.base=225;
 	fre3.insertBefore(fre2);
 
@@ -232,18 +233,41 @@ function AudioVisualization(canvas,audio){
 		ct.fill();
 	}
 
+	//when paused
+	var offset=fre2.start;
+	function ooooops(){
+		/*for(var t=;t<=fre2.end;t++){
+			if(t>=fre2.start && t<= fre2.end){}
+			frequencyArray[t]=To(frequencyArray[t],0,0.07);
+		}*/
+		frequencyArray[offset++]=50;
+		if(offset>fre2.end)offset=fre2.start;
+		//if(frequencyArray[fre3.end]>0){
+			for(var b=frequencyArray.length;b--;){
+				frequencyArray[b]=To(frequencyArray[b],0,0.05);
+			}
+		//}
+		
+	}
+
 	/*start anime*/
 	function anime(){
 		//设置一下圆圈的缩放
-		pie.style.zoom(1+Math.pow((frequencyArray[5]+frequencyArray[0])>>1,3)/41453437);
+		fre2.style.rotate-=0.14;
+		fre1.distance-=0.00005;
+		fre3.distance+=0.00001;
+		audio.paused&&ooooops();
+		pie.style.zoom(1+Math.pow((frequencyArray[5]+frequencyArray[0])>>1,4)/9500000000);
 		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.1));
 		fre3.style.opacity=frequencyArray[fre3.start]/700;
 		fre1.style.opacity=0.1+frequencyArray[fre1.start]/673;
 		COL.draw();
 		if(visualization.frequencyDebug)drawFrequencyDebug();
 		requestAnimationFrame(anime);
-		visualization.getWaveyData(waveArray);
-		visualization.getFrequencyData(frequencyArray);
+		if(!audio.paused){
+			visualization.getWaveyData(waveArray);
+			visualization.getFrequencyData(frequencyArray);
+		}
 	}
 	anime();
 	//COL.debug.on();
