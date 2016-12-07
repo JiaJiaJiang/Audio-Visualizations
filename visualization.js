@@ -130,7 +130,7 @@ function AudioVisualization(canvas,audio){
 
 	var fre3=this.fre3=freTemplate.createShadow();
 	fre3.color='#c3790b'/*'#353535'*/;
-	fre3.start=301;
+	fre3.start=310;
 	fre3.end=435;
 	fre3.distance=/*2*Math.PI/(fre3.end-fre3.start+1)*/0.6;
 	fre3.reduce=1.18;
@@ -254,7 +254,7 @@ function AudioVisualization(canvas,audio){
 	function anime(){
 		//设置一下圆圈的缩放
 		fre2.style.rotate-=0.14;
-		fre1.distance+=0.00005*frequencyArray[0]/120;
+		(frequencyArray[0]>180)&&(fre1.distance+=0.0001*frequencyArray[0]/160);
 		fre3.distance+=0.00001;
 		audio.paused&&ooooops();
 		pie.style.zoom(1+Math.pow((frequencyArray[5]+frequencyArray[0])>>1,4)/9500000000);
