@@ -45,12 +45,12 @@ function AudioVisualization(canvas,audio){
 		ct.beginPath();
 		ct.strokeStyle = "rgba(52, 52, 52, 0.7)";
 		ct.lineWidth = 1.5;
-		ct.moveTo(0,100*waveArray[0]);
+		ct.moveTo(0,60*waveArray[0]);
 		var distance=waveArray.length/canvas.width;
 		for (var i = 1; i < waveArray.length; i++) {
-			ct.lineTo(i/distance,100*waveArray[i]);
+			ct.lineTo(i/distance,60*waveArray[i]);
 		}
-		ct.lineTo(canvas.width,100*waveArray[waveArray.length]);
+		ct.lineTo(canvas.width,60*waveArray[waveArray.length]);
 		ct.stroke();
 	}
 	COL.root.appendChild(waveGraph);
