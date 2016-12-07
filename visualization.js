@@ -265,9 +265,9 @@ function AudioVisualization(canvas,audio){
 		if(visualization.frequencyDebug)drawFrequencyDebug();
 		requestAnimationFrame(anime);
 		if(!audio.paused){
-			visualization.getWaveyData(waveArray);
 			visualization.getFrequencyData(frequencyArray);
 		}
+		visualization.getWaveyData(waveArray);
 	}
 	anime();
 	//COL.debug.on();
