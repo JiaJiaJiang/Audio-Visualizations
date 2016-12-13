@@ -120,7 +120,7 @@ function AudioVisualization(canvas,audio){
 	fre1_2.start=56;
 	fre1_2.end=100;
 	fre1_2.distance=1.5707989998999878;
-	fre1_2.reduce=0.76;
+	fre1_2.reduce=0.83;
 	freFrame.appendChild(fre1_2);
 
 	var fre2=this.fre2=freTemplate.createShadow();
