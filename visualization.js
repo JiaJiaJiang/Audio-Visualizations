@@ -73,6 +73,7 @@ function AudioVisualization(canvas,audio){
 	freTemplate.base=200;
 	freTemplate.distance=1;
 	freTemplate.reduceFirst=1;
+	freTemplate.offsetDeg=0;
 	freTemplate.reduce=1;
 	freTemplate.drawer=function(ct){
 		ct.beginPath();
@@ -80,13 +81,15 @@ function AudioVisualization(canvas,audio){
 		ct.lineWidth = 1.5;
 		var s=this.start,f,l,
 			centerV=(frequencyArray[this.start]+frequencyArray[this.end])/2;
-		for (var i = this.start; i <= this.end; i++) {
+		for (var i = this.start,j = this.start; true; i++,j++) {
 			f=(this.start===i);
-			l=(this.base+To(frequencyArray[i]*(f?this.reduceFirst:1),centerV,this.toCenterRate||0))*this.reduce;
+			(i === this.end)&&(j=this.start);
+			l=(this.base+To(frequencyArray[j]/**(f?this.reduceFirst:1)*/,centerV,this.toCenterRate||0))*this.reduce;
 			ct[f?'moveTo':'lineTo'](
-				l*Math.sin(i*this.distance),
-				-l*Math.cos(i*this.distance)
+				l*Math.sin(i*this.distance+this.offsetDeg),
+				-l*Math.cos(i*this.distance+this.offsetDeg)
 			);
+			if(!f && j===this.start)break;
 		}
 		this.closePath&&ct.closePath();
 		if(this.fillColor){
@@ -101,43 +104,44 @@ function AudioVisualization(canvas,audio){
 
 	var fre1=this.fre1=freTemplate.createShadow();
 	fre1.color='#353535';
-	fre1.distance=1.4609989999;
+	fre1.distance=1.532498999899992;
 	fre1.start=14;
-	fre1.end=100;
+	fre1.end=55;
 	fre1.reduce=0.85;
-	fre1.reduceFirst=0.6;
+	//fre1.reduceFirst=0.4;
 	fre1.closePath=false;
 	fre1.base=240;
 	fre1.style.opacity=0.4;
 	fre1.toCenterRate=0.4;
-	fre1.hidden=true;
+	//fre1.style.hidden=true;
 	freFrame.appendChild(fre1);
 
+	var fre1_2=this.fre1_2=fre1.createShadow();
+	fre1_2.start=56;
+	fre1_2.end=100;
+	fre1_2.distance=1.5707989998999878;
+	fre1_2.reduce=0.6;
+	freFrame.appendChild(fre1_2);
+
 	var fre2=this.fre2=freTemplate.createShadow();
-	//fre2.color='red';
 	fre2.start=101;
-	fre2.end=240/*300*/;
-	fre2.distance=/*1.4249999*/ 2*Math.PI/(fre2.end-fre2.start+1);
+	fre2.end=240;
+	fre2.distance=2*Math.PI/(fre2.end-fre2.start+1);
 	fre2.reduce=1.2;
 	fre2.style.opacity=0.06;
-	//fre2.reduceFirst=0.5;
-	fre2.toCenterRate=0.7/*0.74*/;
+	fre2.toCenterRate=0.7;
 	fre2.base=225;
-	//fre2.style.rotate=180;
-	//fre2.style.composite='darker';
 	fre2.fillColor='#353535';
 	fre2.insertBefore(fre1);
 
 	var fre3=this.fre3=freTemplate.createShadow();
-	fre3.color='#c3790b'/*'#353535'*/;
+	fre3.color='#c3790b';
 	fre3.start=300;
 	fre3.end=420;
-	fre3.distance=/*2*Math.PI/(fre3.end-fre3.start+1)*/0.6;
+	fre3.distance=0.6;
 	fre3.reduce=1.18;
 	fre3.toCenterRate=0.74;
 	fre3.style.opacity=0.16;
-	//fre3.fillColor='#353535'/*'rgb(235,234,230)'*/;
-	//fre3.style.rotate=180;
 	fre3.base=225;
 	fre3.insertBefore(fre2);
 
@@ -159,7 +163,6 @@ function AudioVisualization(canvas,audio){
 	pie2.style.setPositionPoint('center');
 	pie2.style.setZoomPoint('center');
 	pie2.onoverCheck=false;
-	//pie2.borderWidth=4;
 	pie2.insertBefore(pie);
 
 	//text
@@ -204,12 +207,10 @@ function AudioVisualization(canvas,audio){
 		waveGraph.style.y=canvas.height/2;
 
 		freFrame.style.position(canvas.width/2,canvas.height/2);
-		//console.log(canvas.width/2,canvas.height/2)
 
 		text.style.setPositionPoint('center');
 
 		//center fre zoom
-		//console.log(Math.min(canvas.width,canvas.height)/953)
 		freFrame.style.zoom(Math.min(canvas.width,canvas.height)/953);
 	}
 	this.resetGraphs=resetGraphs.bind(this);
@@ -236,27 +237,23 @@ function AudioVisualization(canvas,audio){
 	//when paused
 	var offset=fre2.start;
 	function ooooops(){
-		/*for(var t=;t<=fre2.end;t++){
-			if(t>=fre2.start && t<= fre2.end){}
-			frequencyArray[t]=To(frequencyArray[t],0,0.07);
-		}*/
 		frequencyArray[offset++]=50;
 		if(offset>fre2.end)offset=fre2.start;
-		//if(frequencyArray[fre3.end]>0){
-			for(var b=frequencyArray.length;b--;){
-				frequencyArray[b]=To(frequencyArray[b],0,0.05);
-			}
-		//}
-		
+		for(var b=frequencyArray.length;b--;){
+			frequencyArray[b]=To(frequencyArray[b],0,0.05);
+		}
 	}
 
 	/*start anime*/
 	function anime(){
-		//设置一下圆圈的缩放
-		fre2.style.rotate-=0.14;
-		(frequencyArray[0]>180)&&(fre1.distance+=0.0001*frequencyArray[0]/160);
-		fre3.distance+=0.00001;
+		fre2.offsetDeg+=0.004;
+		if(frequencyArray[0]>180){
+			fre1.offsetDeg+=0.004*frequencyArray[0]/160;
+			fre1_2.offsetDeg-=0.004*frequencyArray[0]/160;
+		}
+		fre3.offsetDeg+=0.00001;
 		audio.paused&&ooooops();
+		//设置一下圆圈的缩放
 		pie.style.zoom(1+Math.pow((frequencyArray[5]+frequencyArray[0])>>1,4)/9500000000);
 		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.1));
 		fre3.style.opacity=frequencyArray[fre3.start]/700;
