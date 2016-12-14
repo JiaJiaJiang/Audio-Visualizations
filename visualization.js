@@ -225,6 +225,8 @@ function AudioVisualization(canvas,audio){
 	
 	function drawFrequencyDebug(){
 		var ct=visualization.COL.context;
+		ct.save();
+		ct.beginPath();
 		ct.fillStyle='rgba(0,0,0,0.6)';
 		var W=COL.canvas.width/frequencyArray.length,
 			h=COL.canvas.height;
@@ -232,6 +234,7 @@ function AudioVisualization(canvas,audio){
 			ct.rect(i*W,h-frequencyArray[i],W,frequencyArray[i]);
 		}
 		ct.fill();
+		ct.restore();
 	}
 
 	//when paused
@@ -252,9 +255,10 @@ function AudioVisualization(canvas,audio){
 			fre1_2.offsetDeg-=0.004*frequencyArray[0]/160;
 		}
 		fre3.offsetDeg+=0.00001;
+		fre1_2.style.opacity=frequencyArray[3]/1800;
 		audio.paused&&ooooops();
 		//设置一下圆圈的缩放
-		pie.style.zoom(1+Math.pow((frequencyArray[5]+frequencyArray[0])>>1,4)/9500000000);
+		pie.style.zoom(To(pie.style.zoomX,1+Math.pow((frequencyArray[5]+frequencyArray[0])>>1,4)/15000000000,0.6 ||(255-frequencyArray[0])/255));
 		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.1));
 		fre3.style.opacity=frequencyArray[fre3.start]/700;
 		fre1.style.opacity=0.1+frequencyArray[fre1.start]/673;
