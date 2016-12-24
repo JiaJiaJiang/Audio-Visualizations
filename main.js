@@ -326,55 +326,9 @@ false);
 
 /*======================在线人数========================*/
 var online = document.querySelector("#onlinenumber");
-function _(type, data) {
-	return JSON.stringify({
-		type: type,
-		data: data
-	});
+var OL=new Online('wss://online.luojia.me:8443');
+OL.enter('coding:Audio-Visulizations');
+OL.onOnlineChange=function(g,n){
+	online.innerHTML=Number(n);
 }
-var socket, pinginterval; 
-(function newconnection() {
-	if (socket && socket.readyState !== 3) {
-		return;
-	} else {
-		delete socket;
-	}
-	socket = new WebSocket("wss://online.luojia.me");
-	//socket = new WebSocket("ws://127.0.0.1:9888");
-	socket.ping = function() {
-		socket.send("1");
-	}
-	socket.onopen = function(data) {
-		socket.send(_("url", "project://audio-visualization2"));
-		if (pinginterval) clearInterval(pinginterval);
-		pinginterval = setInterval(socket.ping, 30000);
-
-	};
-	socket.onmessage = function(data) {
-		if (typeof data == "string" && data === "1") return;
-		try {
-			var msg = JSON.parse(data.data);
-		} catch(e) {
-			return;
-		}
-		switch (msg.type) {
-		case "ol":
-			{
-				online.innerHTML = msg.data;
-				break;
-			}
-		}
-
-	};
-	socket.onerror = function(data) {
-		delete socket;
-		setTimeout(newconnection, 3000);
-		online.innerHTML = 0;
-	};
-	socket.onclose = function(data) {
-		delete socket;
-		setTimeout(newconnection, 3000);
-		online.innerHTML = 0;
-	};
-})();
 /*===========================================*/
