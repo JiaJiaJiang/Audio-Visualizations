@@ -135,13 +135,13 @@ function AudioVisualization(canvas,audio){
 	fre2.insertBefore(fre1);
 
 	var fre3=this.fre3=freTemplate.createShadow();
-	fre3.color='#c3790b';
+	fre3.color='#53390b';
 	fre3.start=300;
 	fre3.end=420;
 	fre3.distance=0.6;
 	fre3.reduce=1.18;
 	fre3.toCenterRate=0.74;
-	fre3.style.opacity=0.16;
+	//fre3.style.opacity=0.16;
 	fre3.base=225;
 	fre3.insertBefore(fre2);
 
@@ -255,14 +255,16 @@ function AudioVisualization(canvas,audio){
 			fre1_2.offsetDeg-=0.004*frequencyArray[0]/160;
 		}
 		fre3.offsetDeg+=0.00001;
+		let co=255-frequencyArray[3];
+		fre3.color='rgba('+(255-frequencyArray[150])+','+co+','+frequencyArray[200]+','+frequencyArray[fre3.start]/700+')';
 		fre1_2.style.opacity=frequencyArray[3]/1800;
 		audio.paused&&ooooops();
 		//设置一下圆圈的缩放
 		let freSum=0;
 		for(let io=1;io<=5;io++)freSum+=frequencyArray[io];
-		pie.style.zoom(1+Math.pow(freSum/5,4)/15000000000/*,0.6 ||(255-frequencyArray[0])/255*/);
+		pie.style.zoom(1+Math.pow(freSum/5,4)/15000000000);
 		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.1));
-		fre3.style.opacity=frequencyArray[fre3.start]/700;
+		//fre3.style.opacity=frequencyArray[fre3.start]/700;
 		fre1.style.opacity=0.1+frequencyArray[fre1.start]/673;
 		COL.draw();
 		if(visualization.frequencyDebug)drawFrequencyDebug();
