@@ -258,7 +258,9 @@ function AudioVisualization(canvas,audio){
 		fre1_2.style.opacity=frequencyArray[3]/1800;
 		audio.paused&&ooooops();
 		//设置一下圆圈的缩放
-		pie.style.zoom(To(pie.style.zoomX,1+Math.pow((frequencyArray[5]+frequencyArray[0])>>1,4)/15000000000,0.6 ||(255-frequencyArray[0])/255));
+		let freSum=0;
+		for(let io=1;io<=5;io++)freSum+=frequencyArray[io];
+		pie.style.zoom(1+Math.pow(freSum/5,4)/15000000000/*,0.6 ||(255-frequencyArray[0])/255*/);
 		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.1));
 		fre3.style.opacity=frequencyArray[fre3.start]/700;
 		fre1.style.opacity=0.1+frequencyArray[fre1.start]/673;
