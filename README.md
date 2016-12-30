@@ -6,7 +6,7 @@
 
 #### 旧版已移至old目录
 
-####演示地址：<a href="http://luojia.coding.me/Audio-Visualizations/" target="_blank">http://luojia.coding.me/Audio-Visualizations/</a>
+####演示地址：<a href="//luojia.coding.me/Audio-Visualizations/" target="_blank">Audio-Visualizations/</a>
 
 
 ###食用方法
@@ -41,3 +41,8 @@
 4. main.js 除可视化效果以外的js逻辑
 5. visualization.js 可视化效果类
 6. style.css 播放器样式
+
+
+## 旧版演示地址
+
+1. <a href="//luojia.coding.me/Audio-Visualizations/old/1/" target="_blank">Audio-Visualizations/old/1/</a>
