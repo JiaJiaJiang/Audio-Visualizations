@@ -247,8 +247,23 @@ function AudioVisualization(canvas,audio){
 		}
 	}
 
+
+	var preFres=new Uint8Array(7),freModCount=0,freSum;
 	/*start anime*/
 	function anime(){
+		for(let i=0;i<preFres.length;i++)preFres[i]=frequencyArray[i];
+		freSum=freModCount=0;
+		if(!audio.paused){
+			visualization.getFrequencyData(frequencyArray);
+		}
+		visualization.getWaveyData(waveArray);
+		for(let pfi=0;pfi<preFres.length;pfi++){
+			if(Math.abs(preFres[pfi],frequencyArray[pfi])>=3){
+				freModCount++;
+				freSum+=preFres[pfi];
+			}
+		}
+
 		fre2.offsetDeg+=0.004;
 		if(frequencyArray[0]>180){
 			fre1.offsetDeg+=0.004*frequencyArray[0]/160;
@@ -260,19 +275,13 @@ function AudioVisualization(canvas,audio){
 		fre1_2.style.opacity=frequencyArray[3]/1800;
 		audio.paused&&ooooops();
 		//设置一下圆圈的缩放
-		let freSum=0;
-		for(let io=1;io<=5;io++)freSum+=frequencyArray[io];
-		pie.style.zoom(1+Math.pow(freSum/5,4)/15000000000);
-		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.1));
-		//fre3.style.opacity=frequencyArray[fre3.start]/700;
+
+		freModCount&&pie.style.zoom(1+Math.pow(freSum/freModCount,3)/33162750);
+		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.2));
 		fre1.style.opacity=0.1+frequencyArray[fre1.start]/673;
 		COL.draw();
 		if(visualization.frequencyDebug)drawFrequencyDebug();
 		requestAnimationFrame(anime);
-		if(!audio.paused){
-			visualization.getFrequencyData(frequencyArray);
-		}
-		visualization.getWaveyData(waveArray);
 	}
 	anime();
 	//COL.debug.on();
