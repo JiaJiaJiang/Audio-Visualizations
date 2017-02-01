@@ -84,7 +84,7 @@ function AudioVisualization(canvas,audio){
 		for (var i = this.start,j = this.start; true; i++,j++) {
 			f=(this.start===i);
 			(i === this.end)&&(j=this.start);
-			l=(this.base+To(frequencyArray[j]/**(f?this.reduceFirst:1)*/,centerV,this.toCenterRate||0))*this.reduce;
+			l=(this.base+To(frequencyArray[j],centerV,this.toCenterRate||0))*this.reduce;
 			ct[f?'moveTo':'lineTo'](
 				l*Math.sin(i*this.distance+this.offsetDeg),
 				-l*Math.cos(i*this.distance+this.offsetDeg)
@@ -130,20 +130,19 @@ function AudioVisualization(canvas,audio){
 	fre2.reduce=1.2;
 	fre2.style.opacity=0.06;
 	fre2.toCenterRate=0.7;
-	fre2.base=225;
+	fre2.base=200;
 	fre2.fillColor='#353535';
 	fre2.insertBefore(fre1);
 
-	var fre3=this.fre3=freTemplate.createShadow();
-	fre3.color='#53390b';
-	fre3.start=300;
-	fre3.end=420;
-	fre3.distance=0.6;
-	fre3.reduce=1.18;
-	fre3.toCenterRate=0.74;
-	//fre3.style.opacity=0.16;
-	fre3.base=225;
-	fre3.insertBefore(fre2);
+
+	var ring=this.ring=new GLib.ring();
+	ring.borderColor='#ccc';
+	ring.borderWidth=7;
+	ring.setRadius(185);
+	ring.style.setZoomPoint('center');
+	ring.style.setPositionPoint('center');
+	ring.insertBefore(fre2);
+
 
 
 	//pie
@@ -153,7 +152,7 @@ function AudioVisualization(canvas,audio){
 	pie.style.setPositionPoint('center');
 	pie.style.setZoomPoint('center');
 	pie.onoverCheck=true;
-	pie.borderWidth=4;
+	pie.borderWidth=2;
 	freFrame.appendChild(pie);
 
 	var pie2=new GLib.pie();
@@ -269,16 +268,19 @@ function AudioVisualization(canvas,audio){
 			fre1.offsetDeg+=0.004*frequencyArray[0]/160;
 			fre1_2.offsetDeg-=0.004*frequencyArray[0]/160;
 		}
-		fre3.offsetDeg+=0.00001;
-		let co=255-frequencyArray[3];
-		fre3.color='rgba('+(255-frequencyArray[150])+','+co+','+frequencyArray[200]+','+frequencyArray[fre3.start]/700+')';
 		fre1_2.style.opacity=frequencyArray[3]/1800;
 		audio.paused&&ooooops();
-		//设置一下圆圈的缩放
 
+		//设置一下圆圈的缩放
 		freModCount&&pie.style.zoom(1+Math.pow(freSum/freModCount,3)/33162750);
 		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.2));
 		fre1.style.opacity=0.1+frequencyArray[fre1.start]/673;
+
+		//环缩放
+		var s3=0;
+		for(var fre3i=300;fre3i<=420;fre3i++)s3+=frequencyArray[fre3i];
+		ring.style.zoom(1.3+s3/30600);
+
 		COL.draw();
 		if(visualization.frequencyDebug)drawFrequencyDebug();
 		requestAnimationFrame(anime);
