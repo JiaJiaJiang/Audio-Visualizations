@@ -328,7 +328,7 @@ false);
 var online = document.querySelector("#onlinenumber");
 var OL=new Online('wss://online.luojia.me/online');
 OL.enter('coding:Audio-Visulizations');
-OL.onOnlineChange=function(g,n){
-	online.innerHTML=Number(n);
+OL.onOnlineChange=function(data){
+	online.innerHTML=Number(data.u);
 }
 /*===========================================*/
