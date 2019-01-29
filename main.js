@@ -289,6 +289,7 @@ window.addEventListener("mousemove",function() {
 });
 window.addEventListener("mousedown",function() {
 	ctrls.show();
+	visualization.audioCtx.resume();
 });
 window.addEventListener("mouseup",function() {
 	visualization.audioCtx.resume();
@@ -308,6 +309,7 @@ function(e) {
 });
 window.addEventListener("drop",
 function(e) {
+	visualization.audioCtx.resume();
 	e.dataTransfer.dropEffect = "copy";
 	e.stopPropagation();
 	e.preventDefault();
