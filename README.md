@@ -1,4 +1,4 @@
-#Audio-Visualizations
+# Audio-Visualizations
 --------
 这是一个使用Web Audio API的音乐可视化演示
 
@@ -6,10 +6,10 @@
 
 #### 旧版已移至old目录
 
-####演示地址：<a href="//luojia.coding.me/Audio-Visualizations/" target="_blank">Audio-Visualizations/</a>
+#### 演示地址：<a href="//jiajiajiang.github.io/Audio-Visualizations/" target="_blank">Audio-Visualizations/</a>
 
 
-###食用方法
+### 食用方法
 
 打开演示后点击顶部的按钮选择音乐文件，或者把音乐文件拖放到按钮上。
 
@@ -45,4 +45,4 @@
 
 ## 旧版演示地址
 
-1. <a href="//luojia.coding.me/Audio-Visualizations/old/1/" target="_blank">Audio-Visualizations/old/1/</a>
+1. <a href="//jiajiajiang.github.io/Audio-Visualizations/old/1/" target="_blank">Audio-Visualizations/old/1/</a>
