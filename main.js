@@ -290,6 +290,9 @@ window.addEventListener("mousemove",function() {
 window.addEventListener("mousedown",function() {
 	ctrls.show();
 });
+window.addEventListener("mouseup",function() {
+	visualization.audioCtx.resume();
+});
 
 //设置
 window.addEventListener("load",
