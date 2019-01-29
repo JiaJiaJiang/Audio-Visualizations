@@ -825,8 +825,13 @@ function() {
 });
 window.addEventListener("mousedown",
 function() {
+	audioCtx.resume();
 	oprcd = 6;
 	ctrls.show();
+});
+window.addEventListener("mouseup",
+function() {
+	audioCtx.resume();
 });
 
 //设置
@@ -845,6 +850,7 @@ function(e) {
 });
 window.addEventListener("drop",
 function(e) {
+	audioCtx.resume();
 	e.dataTransfer.dropEffect = "copy";
 	e.stopPropagation();
 	e.preventDefault();
