@@ -1,0 +1,123 @@
+html{
+background-color: rgb(255, 254, 250);
+moz-user-select: -moz-none;
+-moz-user-select: none;
+-o-user-select:none;
+-khtml-user-select:none;
+-webkit-user-select:none;
+-ms-user-select:none;
+user-select:none;
+}
+body{
+	margin: 0px;
+	padding: 0px;
+}
+canvas{
+	position:fixed;
+	width:100%;
+	height:100%;
+}
+#online{
+left: 240px;
+font-size: 14px;
+text-align: center;
+	line-height: 17px;
+width: 50px !important;
+}
+#online span:last-child{
+	font-size: 19px;
+}
+#sourceinput{
+	position: fixed;
+	font-family: "黑体","微软雅黑";
+	color: #f2f7f0;
+	border-radius: 0 0 11px 11px;
+	top: 0px;
+	width: 450px;
+	height: 40px;
+	background-color: rgba(12, 34, 81, 0.29);
+	left: calc(50% - 225px);
+	overflow: hidden;
+	transition:opacity 0.5s;
+}
+input,#msg{
+		position: absolute;
+	left: 0px;
+	min-width: 100%;
+	height: 100%;
+	white-space: nowrap;
+	border: none;
+	line-height: 40px;
+	text-align: center;
+	cursor: pointer;
+}
+input{
+	width: 100% !important;
+	opacity: 0;
+}
+#msg{
+	transition:opacity 0.2s;
+}
+#ctrls{
+	opacity: 1;
+	transition:opacity 0.5s;
+}
+#playlist{
+	transition: bottom 0.2s,opacity 0.5s;
+	height: 226px;
+	background-color: rgba(92, 90, 90, 0.49);
+	width: 100%;
+	position: fixed;
+	color: #F7F1F1;
+	font-size: 30px;
+	left: 0px;
+	bottom: -226px;
+}
+#controls{
+	position: absolute;
+	background-color: inherit;
+	width: 343px;
+	left: calc(50% - 171.5px);
+	height: 40px;
+	border-radius: 8px 8px 0 0;
+	bottom: 100%;
+	overflow: hidden;
+}
+#list div{
+	height: 40px;
+	position: relative;
+	display: inline-block;
+	width: auto;
+	white-space: nowrap;
+}
+#controls div{
+	position: absolute;
+	display: inline-block;
+	height: 40px;
+	width: 40px;
+	transition:background-color 0.3s;
+	cursor: pointer;
+}
+#controls div:hover{
+	background-color:#5C5C5C;
+}
+#list{
+		overflow-x: auto;
+	height: 100%;
+
+}
+.listitem{
+	transition: opacity 0.1s,background-color 0.3s,color 0.3s;
+	display: inline-block;
+	padding: 0 3px 0 6px;
+	cursor: pointer;
+	border: 1px solid #ccc;
+	opacity: 1;
+	line-height: 40px;
+	background-color: rgba(255,255,255,0);
+}
+.listitem:hover{
+	opacity: 0.5;
+	color:#000;
+	background-color: rgba(255,255,255,0.6);
+}

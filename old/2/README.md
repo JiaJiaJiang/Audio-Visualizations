@@ -2,7 +2,7 @@
 --------
 这是一个使用Web Audio API的音乐可视化演示
 
-## 第三版
+## 第二版
 
 #### 旧版已移至old目录
 
@@ -31,6 +31,8 @@
 # 不支持的浏览器
 
 1. IE
+2. 不知道
+
 
 ## 文件说明
 1. CanvasObjLibrary.js 自制canvas库
@@ -44,4 +46,3 @@
 ## 旧版演示地址
 
 1. <a href="//jiajiajiang.github.io/Audio-Visualizations/old/1/" target="_blank">Audio-Visualizations/old/1/</a>
-2. <a href="//jiajiajiang.github.io/Audio-Visualizations/old/2/" target="_blank">Audio-Visualizations/old/2/</a>
