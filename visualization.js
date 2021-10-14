@@ -1,304 +1,344 @@
+/*
+copyright 2019 luojia@luojia.me
+*/
 (function(){
-function To(origin, to, speed) {
-	return origin + (to - origin) *  speed;
-}
 function rand(min, max) {
-	return (min + Math.random() * (max - min) + 0.5) | 0;
+	return Math.round(min+Math.random()*(max-min));
 }
 
 
 //class:AudioVisualization
-function AudioVisualization(canvas,audio){
-	if(this instanceof AudioVisualization ===false)
-		throw(new Error('this is a constructor,new required.'));
-
-	var visualization=this;
-	/*prepare data source*/
-	this.audio=audio;
-	this.audioCtx = new window.AudioContext();
-	this.audioSourceNode = this.audioCtx.createMediaElementSource(audio);
-	this.analyser=this.audioCtx.createAnalyser();
-	this.gainNode = this.audioCtx.createGain();
-	this.audioSourceNode.connect(this.analyser);
-	this.audioSourceNode.connect(this.gainNode);
-	this.gainNode.connect(this.audioCtx.destination);
-	this.analyser.fftSize=1024;
-
-
-	/*vars*/
-	var COL=this.COL=new CanvasObjLibrary(canvas),
-		GLib=new GraphLib(COL);
-	var frequencyArray=new Uint8Array(this.analyser.frequencyBinCount),
-		waveArray=new Float32Array(this.analyser.fftSize/2);
-
-	frequencyArray.fill(511);
-
-	this.frequencyDebug=false;
-
-	COL.root.onoverCheck=false;
-
-	/*graphs*/
-	//wave
-	var waveGraph=new COL.class.FunctionGraph();
-	waveGraph.onoverCheck=false;
-	waveGraph.drawer=function(ct){
-		ct.beginPath();
-		ct.strokeStyle = "rgba(52, 52, 52, 0.7)";
-		ct.lineWidth = 1.5;
-		ct.moveTo(0,60*waveArray[0]);
-		var distance=waveArray.length/canvas.width;
-		for (var i = 1; i < waveArray.length; i++) {
-			ct.lineTo(i/distance,60*waveArray[i]);
-		}
-		ct.lineTo(canvas.width,60*waveArray[waveArray.length]);
-		ct.stroke();
+class AudioVisualization{
+	audioCtx;
+	analyser;
+	glData={
+		circleVertex:null,//float32array data for drawing circles
+		baseColor:new Float32Array([.1,.3,.4,1]),//float32array base color for the pies
+		// circleLight,//float32array light for circles
+		// circleSize,//float32array size factor for circles
+		circleCount:64,//circles to draw
+		circleIndex:null,
+		sceneMatrix:Mat.Identity(4),//scene
+		// cameraMatrix:new Float32Array([0,0,-1]);
 	}
-	COL.root.appendChild(waveGraph);
+	audioData={
+		frequencyArray:new Float32Array(this.glData.circleCount),//Uint8Array
+		// waveArray,//Float32Array
+	}
+	mats={
+		perspectiveMatrix:Mat.Perspective(45,1,0.001,10),//perspective
+		rotateMatrix:Mat.Identity(4).rotate3d(-Math.PI/4,0,0),
+		translateMatrix:Mat.Identity(4).translate3d(0,-0.2,1),
+		whScaleMatrix:Mat.Identity(4),
+		// identity:Mat.Identity(4),
+	}
+	glRoom;
+	program;
+	_source;
+	constructor(canvas){
+		this.canvas=canvas;
+		this.initAudioCtx();
+		this.glRoom=new GLRoom(canvas);
+		this.initGL();
+		this.resetCanvas();
+		this.initData();
+		// this.setSource(source);
+	}
+	shaders={
+		vert:[WebGL2RenderingContext.VERTEX_SHADER,`
+			#version 300 es
+			#pragma optimize(on)
+			precision mediump float;
+			in float a_circleIndex;
+			in float a_light;
+			in vec2 a_circleVertex;
+			uniform float u_circleCount;
+			uniform mat4 u_sceneMatrix;
 
+			out float v_light;
 
-	//frequency
-	var freFrame=new COL.class.FunctionGraph();
-	Object.assign(freFrame.style,{
-		width:0,
-		height:0,
-	});
-	freFrame.onoverCheck=false;
-	COL.root.appendChild(freFrame);
+			void main(void) {
+				float addition=(1.0-0.3)/u_circleCount;
+				float size=0.3+a_circleIndex*addition;
+				gl_Position = u_sceneMatrix*vec4(a_circleVertex.xy*size,
+						(a_circleIndex-u_circleCount/2.0)/300.0,
+						1);
+				v_light=pow(a_light,1.5);
+			}`
+		],
+		frag:[WebGL2RenderingContext.FRAGMENT_SHADER,`
+			#version 300 es
+			#pragma optimize(on)
+			precision mediump float;
+			in float v_light;
+			uniform vec4 u_baseColor;
+			out vec4 color;
 
-	var freTemplate=new COL.class.FunctionGraph();
-	freTemplate.onoverCheck=false;
-	freTemplate.start=0;
-	freTemplate.end=0;
-	freTemplate.color=null;
-	freTemplate.base=200;
-	freTemplate.distance=1;
-	freTemplate.reduceFirst=1;
-	freTemplate.offsetDeg=0;
-	freTemplate.reduce=1;
-	freTemplate.drawer=function(ct){
-		ct.beginPath();
-		ct.strokeStyle = this.color;
-		ct.lineWidth = 1.5;
-		var s=this.start,f,l,
-			centerV=(frequencyArray[this.start]+frequencyArray[this.end])/2;
-		for (var i = this.start,j = this.start; true; i++,j++) {
-			f=(this.start===i);
-			(i === this.end)&&(j=this.start);
-			l=(this.base+To(frequencyArray[j],centerV,this.toCenterRate||0))*this.reduce;
-			ct[f?'moveTo':'lineTo'](
-				l*Math.sin(i*this.distance+this.offsetDeg),
-				-l*Math.cos(i*this.distance+this.offsetDeg)
-			);
-			if(!f && j===this.start)break;
+			void main(void) {
+				color=
+				vec4(
+					(1.0-u_baseColor.rgb)*v_light+u_baseColor.rgb,
+					1.0
+				);
+			}`
+		],
+	}
+	initAudioCtx(){
+		if(!window.AudioContext){
+			alert('Your Broswer dose not support web audio api');
+			throw('not support');
 		}
-		this.closePath&&ct.closePath();
-		if(this.fillColor){
-			ct.fillStyle=this.fillColor;
-			ct.fill();
-		}
-		if(this.color){
-			ct.strokeStyle=this.fillColor;
-			ct.stroke();
+		this.audioCtx = new window.AudioContext();
+		this.analyser=this.audioCtx.createAnalyser();
+		this.analyser.fftSize=this.glData.circleCount*2;
+		this.audioNode = this.audioCtx.createGain();
+		
+		this.audioNode.connect(this.analyser);
+
+		// this.audioData.waveArray=new Float32Array(this.analyser.fftSize/2);
+	}
+	toDestination(s){
+		if(s===true){
+			try{
+				this.audioNode.connect(this.audioCtx.destination);
+			}catch(e){}
+		}else if(s===false){
+			try{
+				this.audioNode.disconnect(this.audioCtx.destination);
+			}catch(e){}
 		}
 	}
-
-	var fre1=this.fre1=freTemplate.createShadow();
-	fre1.color='#353535';
-	fre1.distance=1.532498999899992;
-	fre1.start=14;
-	fre1.end=55;
-	fre1.reduce=0.85;
-	//fre1.reduceFirst=0.4;
-	fre1.closePath=false;
-	fre1.base=240;
-	fre1.style.opacity=0.4;
-	fre1.toCenterRate=0.4;
-	//fre1.style.hidden=true;
-	freFrame.appendChild(fre1);
-
-	var fre1_2=this.fre1_2=fre1.createShadow();
-	fre1_2.start=56;
-	fre1_2.end=100;
-	fre1_2.distance=1.5707989998999878;
-	fre1_2.reduce=0.83;
-	freFrame.appendChild(fre1_2);
-
-	var fre2=this.fre2=freTemplate.createShadow();
-	fre2.start=101;
-	fre2.end=240;
-	fre2.distance=2*Math.PI/(fre2.end-fre2.start+1);
-	fre2.reduce=1.2;
-	fre2.style.opacity=0.06;
-	fre2.toCenterRate=0.7;
-	fre2.base=200;
-	fre2.fillColor='#353535';
-	fre2.insertBefore(fre1);
-
-
-	var ring=this.ring=new GLib.ring();
-	ring.borderColor='#ccc';
-	ring.borderWidth=7;
-	ring.setRadius(185);
-	ring.style.setZoomPoint('center');
-	ring.style.setPositionPoint('center');
-	ring.insertBefore(fre2);
-
-
-
-	//pie
-	var pie=this.pie=new GLib.pie();
-	pie.setRadius(185);
-	pie.color='#fff';
-	pie.style.setPositionPoint('center');
-	pie.style.setZoomPoint('center');
-	pie.onoverCheck=true;
-	pie.borderWidth=2;
-	freFrame.appendChild(pie);
-
-	var pie2=new GLib.pie();
-	pie2.setRadius(205);
-	pie2.color='#353535';
-	pie2.style.opacity=0.2;
-	pie2.style.setPositionPoint('center');
-	pie2.style.setZoomPoint('center');
-	pie2.onoverCheck=false;
-	pie2.insertBefore(pie);
-
-	//text
-	var text=this.text=new COL.class.TextGraph();
-	text.onoverCheck=false;
-	text.font.fontWeight=600;
-	text.font.color="#353535";
-	text.style.opacity=0;
-	text.style.position(pie.style.width/2,pie.style.height/2);
-	pie.appendChild(text);
-	setTimeout(function(){
-		text.style.setPositionPoint('center');
-		var i=setInterval(function(){
-			if(text.style.opacity<1){
-				text.style.opacity+=0.1;
-			}else{
-				clearInterval(i);
-			}
-		},30);
-	},200);
-
-
-	//bottom
-	var buttomFre=new COL.class.FunctionGraph();
-	buttomFre.onoverCheck=false;
-	buttomFre.drawer=function(ct){
-		//ct.beginPath()
-		ct.fillStyle='rgba(0,0,0,0.08)';
-		var s=1,e=fre1.start-1,W=COL.canvas.width/(e-s+1),
-			h=COL.canvas.height;
-		for(var i=0;i<=e-s;i++){
-			ct.rect(i*W,h-frequencyArray[i+s],W,frequencyArray[i+s]);
+	setSource(s){
+		if(this._source)
+			this._source.disconnect(this.audioNode);
+		if(!s){
+			this._source=null;return;
 		}
-		ct.fill();
-	};
-	buttomFre.insertAfter(waveGraph);
-
-
-	function resetGraphs(){
-		console.log('reset graphs');
-		waveGraph.style.size(canvas.width,1);
-		waveGraph.style.y=canvas.height/2;
-
-		freFrame.style.position(canvas.width/2,canvas.height/2);
-
-		text.style.setPositionPoint('center');
-
-		//center fre zoom
-		freFrame.style.zoom(Math.min(canvas.width,canvas.height)/953);
+		s.connect(this.audioNode);
+		this._source=s;
 	}
-	this.resetGraphs=resetGraphs.bind(this);
-	resetGraphs();
+	refreshAudioData(){
+		this.analyser.getFloatFrequencyData(this.audioData.frequencyArray);
+
+		for(let i=0;i<this.audioData.frequencyArray.length;i++){
+			this.audioData.frequencyArray[i]=AudioVisualization.freValueScale(this.audioData.frequencyArray[i]);
+		}
+
+	}
+	initGL(){
+		let canvas=this.canvas,
+			glRoom=this.glRoom,
+			gl=glRoom.gl;
+		// glRoom.createProgram('circles',this.shaders);
+
+		//get locations
+		
+		this.program=glRoom.createProgram('circles',this.shaders)
+		.cacheUniformLocation([//uniforms
+			//'u_sceneMatrix',
+			'u_circleCount',
+			'u_baseColor',
+			'u_sceneMatrix',
+			// 'u_whScale',
+			// 'u_rotateMatrix',
+			// 'u_translateMatrix',
+		]).cacheAttributeLocation([//attributes
+			'a_light',
+			'a_circleVertex',
+			'a_circleIndex',
+		]);
+		glRoom.createBuffer([
+			'circleVertexBuffer',
+			'circleIndexBuffer',
+			'circleLightBuffer',
+		]).clearColor(187/255, 193/255, 193/255, 1.0);
+		gl.enable(gl.DEPTH_TEST);
+		/*.enable('BLEND')*/;//bg color
+
+		gl.enable(gl.BLEND);
+		// gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA ,gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+		
+	}
+	getFrequencyData(){
+		this.analyser.getFloatFrequencyData(array);
+	}
+	/*getWaveData(array){
+		this.analyser.getFloatTimeDomainData(array);
+	}*/
+	_pieVertex(R){
+		let minR=R-3,
+			addRad=Math.acos(minR/R),
+			pointCount=Math.ceil(Math.PI*2/addRad),
+			rad=0,
+			points=new Float32Array(pointCount*2);
+		addRad=Math.PI*2/pointCount;
+		for(;pointCount--;rad+=addRad){
+			points[pointCount*2]=Math.sin(rad);
+			points[pointCount*2+1]=Math.cos(rad);
+		}
+		return points;
+	}
+	resetCanvas(){//called for every resizing event
+		let [W,H]=[this.canvas.offsetWidth,this.canvas.offsetHeight];
+
+		//reset circle vertex array
+		let maxR=Math.sqrt(W*W+H*H)/2;//radius of the biggest circle
+		let glRoom=this.glRoom,
+			p=this.program,
+			gl=glRoom.gl;
+		glRoom.resizeCanvas();
+		this.glData.circleVertex=this._pieVertex(maxR);
+		glRoom.VAO('circle',()=>{
+			//reset circle vertex
+			glRoom.buffer('circleVertexBuffer',gl.ARRAY_BUFFER,this.glData.circleVertex,gl.STATIC_DRAW);
+			gl.vertexAttribPointer(p.a.a_circleVertex,2,gl.FLOAT,false,0,0);//fill vertex data of the circle
+		});
+		gl.viewport(0,0,W,H);
+
+		//reset alex scale
+		let maxA=Math.max(W,H);
+		Mat.scale3d(Mat.Matrixes.I4,maxA/W,maxA/H,1,this.mats.whScaleMatrix);
+		
+		// [...this.mats.whScaleMatrix.array]=[maxA/W,maxA/H,1,1];
+		// gl.uniform2fv(p.u.u_whScale,this.glData.whScale);
+	}
+	initData(){//one time init
+		let glRoom=this.glRoom,
+			gl=glRoom.gl,
+			p=this.program,
+			count=this.glData.circleCount;
+		// let shaderProgram=this.shaderProgram;
+		
+		//data
+		gl.uniform4fv(p.u.u_baseColor,this.glData.baseColor);
+		gl.uniform1f(p.u.u_circleCount,this.glData.circleCount);
+
+		this.glData.circleIndex=new Float32Array(count);//circle index
+		for(let i=count;i--;){//generate index
+			this.glData.circleIndex[i]=i;
+		}
+
+		//set scene matrix
+		// gl.uniformMatrix4fv(p.u.u_sceneMatrix,true,this.glData.sceneMatrix.array);
+		// gl.uniformMatrix4fv(p.u.u_rotateMatrix,true,this.glData.rotateMatrix.array);
+		// gl.uniformMatrix4fv(p.u.u_translateMatrix,true,this.glData.translateMatrix.array);
+		this.canvas.addEventListener('mousemove',e=>{//follow mouse
+			let Ry=(e.offsetX-this.canvas.width/2)/this.canvas.width*this.mats.whScaleMatrix.array[1],
+				Rx=(e.offsetY-this.canvas.height/2)/this.canvas.height*this.mats.whScaleMatrix.array[0];
+			Mat.rotate3d(Mat.Matrixes.I4,Rx/2-Math.PI/4,Ry/2,0,this.mats.rotateMatrix);
+			// gl.uniformMatrix4fv(p.u.u_rotateMatrix,false,this.glData.rotateMatrix.array);
+			
+		});
+
+		//circle vao
+		glRoom.VAO('circle',()=>{
+			//vertex
+			gl.enableVertexAttribArray(p.a.a_circleVertex);
+			glRoom.buffer('circleVertexBuffer',gl.ARRAY_BUFFER);
+			gl.vertexAttribPointer(p.a.a_circleVertex,2,gl.FLOAT,false,0,0);
+
+			//circle index data
+			gl.enableVertexAttribArray(p.a.a_circleIndex);
+			glRoom.buffer('circleIndexBuffer',gl.ARRAY_BUFFER,this.glData.circleIndex,gl.STATIC_DRAW);
+			gl.vertexAttribPointer(p.a.a_circleIndex,1,gl.FLOAT,false,0,0);
+			gl.vertexAttribDivisor(p.a.a_circleIndex,1);
+
+			//light buffer
+for(let i=0;i<this.audioData.frequencyArray.length;i++){
+	this.audioData.frequencyArray[i]=i/this.audioData.frequencyArray.length;
+}
+			gl.enableVertexAttribArray(p.a.a_light);
+			glRoom.buffer('circleLightBuffer',gl.ARRAY_BUFFER);
+gl.bufferData(gl.ARRAY_BUFFER,this.audioData.frequencyArray,gl.STREAM_DRAW);
+			gl.vertexAttribPointer(p.a.a_light,1,gl.FLOAT,false,0,0);
+			gl.vertexAttribDivisor(p.a.a_light,1);
+		});
+		
+// glRoom.buffer('circleLightBuffer',gl.ARRAY_BUFFER,this.audioData.frequencyArray,gl.STREAM_DRAW);
+	}
+	draw(){
+		let glRoom=this.glRoom,
+			gl=glRoom.gl,
+			p=this.program,
+			glData=this.glData,
+			mats=this.mats;
+		// this.refreshAudioData();//get new fre data
 
 
-	/*size change*/
-	/*reset graphs*/
-	COL.root.on('resize',function(){
-		resetGraphs();
-	});
+		glData.sceneMatrix.set(Mat.Matrixes.I4);
+		glData.sceneMatrix.leftMultiply(mats.rotateMatrix)
+							.leftMultiply(mats.translateMatrix)
+							.leftMultiply(mats.perspectiveMatrix)
+							.leftMultiply(mats.whScaleMatrix);
+		gl.uniformMatrix4fv(p.u.u_sceneMatrix,true,glData.sceneMatrix.array);
+
+		//GL
+		gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+		
+		glRoom.VAO('circle',()=>{
+			//realtime data
+			//frequency energy => light
+			glRoom.buffer('circleLightBuffer',gl.ARRAY_BUFFER,this.audioData.frequencyArray,gl.STREAM_DRAW);
+
+			gl.drawArraysInstanced(gl.TRIANGLE_FAN,0,this.glData.circleVertex.length/2,this.glData.circleCount);
+		});
+	}
+	static freValueScale(raw){
+		const min=-150.0,max=-20.0;
+		raw=(raw-max)/(min-max);
+		if(raw>1.0)raw=1.0;
+		else if(raw<0.0)raw=0.0;
+		return Math.pow((1.0-raw),2.9);
+	}
+}
+
+
+
+
+
+
 	
-	function drawFrequencyDebug(){
-		var ct=visualization.COL.context;
-		ct.save();
-		ct.beginPath();
-		ct.fillStyle='rgba(0,0,0,0.6)';
-		var W=COL.canvas.width/frequencyArray.length,
-			h=COL.canvas.height;
-		for(var i=frequencyArray.length;i--;){
-			ct.rect(i*W,h-frequencyArray[i],W,frequencyArray[i]);
-		}
-		ct.fill();
-		ct.restore();
-	}
 
-	//when paused
-	var offset=fre2.start;
-	function ooooops(){
-		frequencyArray[offset++]=50;
-		if(offset>fre2.end)offset=fre2.start;
-		for(var b=frequencyArray.length;b--;){
-			frequencyArray[b]=To(frequencyArray[b],0,0.05);
-		}
-	}
+// var preFres=new Uint8Array(7),freModCount=0,freSum;
+// /*start anime*/
+// function anime(){
+// 	for(let i=0;i<preFres.length;i++)preFres[i]=frequencyArray[i];
+// 	freSum=freModCount=0;
+// 	if(!audio.paused){
+// 		visualization.getFrequencyData(frequencyArray);
+// 	}
+// 	// visualization.getWaveyData(waveArray);
+// 	for(let pfi=0;pfi<preFres.length;pfi++){
+// 		if(Math.abs(preFres[pfi],frequencyArray[pfi])>=3){
+// 			freModCount++;
+// 			freSum+=preFres[pfi];
+// 		}
+// 	}
 
+// 	fre2.offsetDeg+=0.004;
+// 	if(frequencyArray[0]>180){
+// 		fre1.offsetDeg+=0.004*frequencyArray[0]/160;
+// 		fre1_2.offsetDeg-=0.004*frequencyArray[0]/160;
+// 	}
+// 	fre1_2.style.opacity=frequencyArray[3]/1800;
+// 	audio.paused&&ooooops();
 
-	var preFres=new Uint8Array(7),freModCount=0,freSum;
-	/*start anime*/
-	function anime(){
-		for(let i=0;i<preFres.length;i++)preFres[i]=frequencyArray[i];
-		freSum=freModCount=0;
-		if(!audio.paused){
-			visualization.getFrequencyData(frequencyArray);
-		}
-		visualization.getWaveyData(waveArray);
-		for(let pfi=0;pfi<preFres.length;pfi++){
-			if(Math.abs(preFres[pfi],frequencyArray[pfi])>=3){
-				freModCount++;
-				freSum+=preFres[pfi];
-			}
-		}
+// 	//设置一下圆圈的缩放
+// 	freModCount&&pie.style.zoom(1+Math.pow(freSum/freModCount,3)/33162750);
+// 	pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.2));
+// 	fre1.style.opacity=0.1+frequencyArray[fre1.start]/673;
 
-		fre2.offsetDeg+=0.004;
-		if(frequencyArray[0]>180){
-			fre1.offsetDeg+=0.004*frequencyArray[0]/160;
-			fre1_2.offsetDeg-=0.004*frequencyArray[0]/160;
-		}
-		fre1_2.style.opacity=frequencyArray[3]/1800;
-		audio.paused&&ooooops();
+// 	//环缩放
+// 	var s3=0;
+// 	for(var fre3i=300;fre3i<=420;fre3i++)s3+=frequencyArray[fre3i];
+// 	ring.style.zoom(1.3+s3/30600);
 
-		//设置一下圆圈的缩放
-		freModCount&&pie.style.zoom(1+Math.pow(freSum/freModCount,3)/33162750);
-		pie2.style.zoom(To(pie2.style.zoomX,pie.style.zoomX,0.2));
-		fre1.style.opacity=0.1+frequencyArray[fre1.start]/673;
+// 	COL.draw();
+// 	if(visualization.frequencyDebug)drawFrequencyDebug();
+// 	requestAnimationFrame(anime);
+// }
+// anime();
 
-		//环缩放
-		var s3=0;
-		for(var fre3i=300;fre3i<=420;fre3i++)s3+=frequencyArray[fre3i];
-		ring.style.zoom(1.3+s3/30600);
-
-		COL.draw();
-		if(visualization.frequencyDebug)drawFrequencyDebug();
-		requestAnimationFrame(anime);
-	}
-	anime();
-	//COL.debug.on();
-}
-AudioVisualization.prototype.setText=function(text,size){
-	this.text.text=text;
-	this.text.font.fontSize=size||30;
-	this.text.prepare();
-	this.resetGraphs();
-}
-AudioVisualization.prototype.getFrequencyData=function(array){
-	this.analyser.getByteFrequencyData(array);
-}
-AudioVisualization.prototype.getWaveyData=function(array){
-	this.analyser.getFloatTimeDomainData(array);
-}
 window.AudioVisualization=AudioVisualization;
 })();

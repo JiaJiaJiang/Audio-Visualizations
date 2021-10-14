@@ -8,27 +8,32 @@ if (! (Audio && AudioContext && FileReader && Uint8Array)) {
 	throw(new Error('API not supported'));
 }
 
-var canvas=document.querySelector('canvas'),
+var ele_canvas=document.querySelector('canvas'),
 	audio = new Audio(),
-	visualization=new AudioVisualization(canvas,audio);
+	visualization=new AudioVisualization(ele_canvas,audio),
+	musicNode=visualization.audioCtx.createMediaElementSource(audio);
 
-
-
-window.addEventListener('resize',function(){
-	visualization.COL.adjustCanvas();
-});
-
-function rand(min, max) {
+function events(target,events){//add events
+	if(!Array.isArray(target))target=[target];
+	for(let e in events)
+		e.split(/\,/g).forEach(function(e2){
+			target.forEach(function(t){
+				t.addEventListener(e2,events[e])
+			});
+		});
+}
+function rand(min, max) {//random in range
 	return (min + Math.random() * (max - min) + 0.5) | 0;
 }
-function c_ele(name) {
+function c_ele(name) {//create element
 	return document.createElement(name);
 }
 
 
+
 /*=======================可视化效果配置======================*/
 
-visualization.setText('Coding',95);
+/*visualization.setText('Coding',95);
 var pie=visualization.pie,ad=document.querySelector('#nya');
 //ad.hidden=true;
 pie.on('mouseover',function(){
@@ -39,7 +44,7 @@ pie.on('mouseout',function(){
 });
 pie.on('click',function(){
 	ad.hidden=!ad.hidden;
-});
+});*/
 
 
 /*========================音乐控制==========================*/
@@ -54,20 +59,27 @@ var playMode = ["顺序", "单曲循环", "随机", "列表循环"];
 var playOption = {
 	mode: 0
 }
-var playmodesvg = document.querySelector("#playMode svg");
-var input = document.querySelector("input"),
-	msg = document.querySelector("#msg");
+var ele_playmodesvg = document.querySelector("#playMode svg");
+var ele_fileInput = c_ele("input"),
+	ele_playing = document.querySelector("#playing"),
+	ele_playlist = document.querySelector("#playlist"),
+	ele_ctrls = document.querySelector("#ctrls"),
+	ele_control = document.querySelector("#controls");
 
-var playingid = 0,
+var playingInd = 0,
 	playlist = [];
-input.onchange = function(e) {
-	var p = false;
-	if (playlist.length === 0) p = true;
-	loadFileList(input.files);
-	if (p) {
-		playMusic(0);
+ele_fileInput.type='file';
+events(ele_fileInput,{
+	change:e=>{
+		var p = false;
+		if(playlist.length === 0) p = true;
+		loadFileList(ele_fileInput.files);
+		if(p) {
+			playMusic(0);
+		}
 	}
-}
+});
+
 
 function loadFileList(fl) {
 	for (var i = 0; i < fl.length; i++) {
@@ -80,260 +92,286 @@ function loadFileList(fl) {
 		}
 	}
 }
-
-
-
-var listtracks = document.querySelectorAll("#list div"),
-playlistdom = document.querySelector("#playlist"),
-sourceinputdom = document.querySelector("#sourceinput");
 function addToPlayList(id) {
-	var item = c_ele("span"),
-	track = 0,
-	trackwidth = [];
-	item.className = "listitem";
-	item.innerHTML = playlist[id].name;
+	let item = c_ele("div");
+	item.innerText = playlist[id].name;
 	item.songid = id;
-	for (var qwe = listtracks.length; qwe--;) {
-		trackwidth[qwe] = listtracks[qwe].offsetWidth;
-	}
-	for (var qwe = 0; qwe < trackwidth.length; qwe++) {
-		if (trackwidth[qwe] < trackwidth[track]) track = qwe;
-	}
-	listtracks[track].appendChild(item);
+	ele_playlist.appendChild(item);
 }
 function playMusic(ind) {
 	if (playlist[ind]) {
 		audio.pause();
 		audio.src = playlist[ind].src;
-		playingid = ind;
+		playingInd = ind;
 		audio.play();
-		msg.style.opacity = 0;
-		msg.innerHTML = "正在播放:" + playlist[ind].name;
+		ele_playing.style.opacity = 0;
+		ele_playing.innerHTML = playlist[ind].name;
 		setTimeout(adjustfontsize, 50, true);
 	} else {
 		console.log(playlist[ind]);
 	}
 }
-
 function setmode(m) {
 	if (playMode[m]) {
-		playmodesvg.innerHTML = playmodesvgs[playMode[m]];
+		ele_playmodesvg.innerHTML = playmodesvgs[playMode[m]];
 		playOption.mode = m;
 	}
 }
 
-audio.onended = function() {//播放结束自动下一首
-	next();
-};
-var songlist = document.querySelector("#list");
-songlist.addEventListener("click",function(e) {
-	var o = e.target;
-	if (o.songid >= 0) {
-		playMusic(o.songid);
+events(ele_playlist,{
+	click:e=>{
+		var o = e.target;
+		if (o.songid >= 0) {
+			playMusic(o.songid);
+		}
 	}
-});
+})
 
-var control = document.querySelector("#controls");
-control.addEventListener("click",
-function(e) {
-	if (e.target.parentNode.localName != "div") {
-		if (e.target.parentNode.parentNode.localName != "div") {
-			console.log("?")
-		} else {
-			var o = e.target.parentNode.parentNode;
-		}
-	} else {
-		var o = e.target.parentNode;
-	}
-	switch (o.id) {
-		case "pre":{
-			pre();
-			break;
-		}
-		case "play":{
-			if (audio.paused) audio.play();
-			break;
-		}
-		case "pause":{
-			if (!audio.paused) audio.pause();
-			break;
-		}
-		case "next":{
-			next();
-			break;
-		}
-		case "songlist":{
-			if (playlistdom.style.bottom == "0px") {
-				playlistdom.style.bottom='';
-			} else {
-				playlistdom.style.bottom = "-0px";
-			}
-			break;
-		}
-		case "playmode":{
-			playOption.mode++;
-			if (playOption.mode == 4) playOption.mode = 0;
-			setmode(playOption.mode);
-			break;
+events(ele_control,{
+	click:e=>{
+		let o=e.target;
+		while(o.localName != "div")
+			o=o.parentNode;
+
+		switch (o.id) {
+			case "pre":
+				preSong();break;
+			case "play":
+				if (audio.paused) audio.play();break;
+			case "pause":
+				if (!audio.paused) audio.pause();break;
+			case "next":
+				nextSong();break;
+			
+			case "playmode":
+				playOption.mode++;
+				if (playOption.mode == 4) playOption.mode = 0;
+				setmode(playOption.mode);
+				break;
 		}
 	}
 });
 
-function next() {
+function nextSong() {
 	switch (playOption.mode) {
-		case 0:{
-			if (playlist[playingid + 1]) {
-				playMusic(playingid + 1);
+		case 0:
+			if (playlist[playingInd + 1]) {
+				playMusic(playingInd + 1);
 			}
 			break;
-		}
-		case 1:{
-			playMusic(playingid);
-			break;
-		}
-		case 2:{
-			playMusic(rand(0, playlist.length - 1));
-			break;
-		}
-		case 3:{
-			if (playlist[playingid + 1]) {
-				playMusic(playingid + 1);
+		case 1:
+			playMusic(playingInd);break;
+		case 2:
+			playMusic(rand(0, playlist.length - 1));break;
+		case 3:
+			if (playlist[playingInd + 1]) {
+				playMusic(playingInd + 1);
 			} else {
 				playMusic(0);
 			}
 			break;
-		}
 	}
 }
-function pre() {
+function preSong() {
 	switch (playOption.mode) {
-		case 0:{
-			if (playlist[playingid - 1])playMusic(playingid - 1);
+		case 0:
+			if (playlist[playingInd - 1])playMusic(playingInd - 1);
 			break;
-		}
-		case 1:{
-			audio.seek(0);
-			break;
-		}
-		case 2:{
-			playMusic(rand(0, playlist.length - 1));
-			break;
-		}
-		case 3:{
-			if (playlist[playingid - 1]) {
-				playMusic(playingid - 1);
+		case 1:
+			audio.seek(0);break;
+		case 2:
+			playMusic(rand(0, playlist.length - 1));break;
+		case 3:
+			if (playlist[playingInd - 1]) {
+				playMusic(playingInd - 1);
 			} else {
 				playMusic(playlist.length - 1);
 			}
 			break;
-		}
 	}
 }
 /*===========================================*/
 
+/*=======================音频源控制======================*/
+events(sources,{
+	change:e=>{
+		if(sources.source.value==='mic'){
+			setSource('mic');
+		}else{
+			setSource('music');
+		}
+	}
+});
+let unsetSource;
+function setSource(s){
+	if(unsetSource)unsetSource();
+	switch(s){
+		case 'mic':
+			location.hash='';
+			ele_ctrls.classList.add('micMode');
+			visualization.toDestination(false);
+			navigator.mediaDevices.getUserMedia({audio:true})
+			.then(function(micMediaStream){
+				let ms=visualization.audioCtx.createMediaStreamSource(micMediaStream);
+				visualization.setSource(ms);
+				console.log('tracks',micMediaStream.getTracks());
+				unsetSource=()=>{
+					visualization.setSource();
+					for(let t of micMediaStream.getTracks()){
+						t.stop();
+					}
+					unsetSource=null;
+				}
+			}).catch(function(err) {
+				console.log(err);
+				alert('Cannot get media stream, please check your settings.Or your browser requires a secure context to get the media.');
+			});
+			break;
+		case 'music':
+			location.hash='#mode=music';
+			visualization.toDestination(true);
+			ele_ctrls.classList.remove('micMode');
+			visualization.setSource(musicNode);
+			unsetSource=()=>{
+				audio.pause();
+				visualization.setSource();
+			}
+			break;
+	}
+}
 
 /*=======================界面控制========================*/
 function getfontsize(ele) {
-	return ele.style.fontSize = Number(msg.style.fontSize.match(/\d+/));
+	return ele.style.fontSize = Number(ele_playing.style.fontSize.match(/\d+/));
 }
 function adjustfontsize(first) {
-	var size = getfontsize(msg);
+	var size = getfontsize(ele_playing),
+		maxW=ele_playing.parentNode.offsetWidth,
+		maxH=ele_playing.parentNode.offsetHeight,
+		W=ele_playing.offsetWidth,
+		H=ele_playing.offsetHeight;
 	if (first) {
-		msg.style.fontSize = "29px";
+		ele_playing.style.fontSize = maxH+"px";
 		setTimeout(adjustfontsize, 50);
 		return;
 	}
 	if (size < 12) {
-		msg.style.opacity = 1;
+		ele_playing.style.opacity = 1;
 		return;
 	}
-	if (msg.offsetWidth > 450 || size > 29) {
-		msg.style.fontSize = getfontsize(msg) - 0.2 + "px";
+	if (W > maxW || H > maxH) {
+		ele_playing.style.fontSize = (size - 0.2) + "px";
 		setTimeout(adjustfontsize, 50);
 		return;
-	} else if (msg.offsetWidth < 430) {
-		msg.style.fontSize = getfontsize(msg) + 0.2 + "px";
+	} /*else if (W < maxW && H < maxH) {
+		ele_playing.style.fontSize = (size + 0.2 )+ "px";
 		setTimeout(adjustfontsize, 50);
 		return;
-	}
-	msg.style.opacity = 1;
+	}*/
+	ele_playing.style.opacity = 1;
 }
 
-//无操作隐藏界面
-var ctrlsDom=document.querySelector('#ctrls');
-var oprcd = 6;
-setInterval(function() {
-	if(!visualization.COL.stat.canvasOnover)return;
-	if (oprcd < 0) {
-		ctrls.hide();
-	}
-	oprcd--;
-},
-1000);
+//点击画布显隐控制
 
 var ctrls = {
 	hide: function() {
-		ctrlsDom.style.opacity = 0;
+		// ele_ctrls.style.display='none';
+		/*ctrlsDom.style.opacity = 0;
 		setTimeout(function(){
 			(oprcd<0)&&(ctrlsDom.hidden=true);
-		},550);
+		},550);*/
 	},
 	show: function() {
-		oprcd = 6;
+		// ele_ctrls.style.display='';
+
+		/*oprcd = 6;
 		ctrlsDom.hidden=false;
-		ctrlsDom.style.opacity = '';
+		ctrlsDom.style.opacity = '';*/
 	}
 }
-window.addEventListener("mousemove",function() {
-	ctrls.show();
-});
-window.addEventListener("mousedown",function() {
-	ctrls.show();
-	visualization.audioCtx.resume();
-});
-window.addEventListener("mouseup",function() {
-	visualization.audioCtx.resume();
-});
 
-//设置
-window.addEventListener("load",
-function() {
-	if (window.setmode) setmode(0);
-});
 
-window.addEventListener("dragover",
-function(e) {
-	e.dataTransfer.dropEffect = "copy";
-	e.stopPropagation();
-	e.preventDefault();
-});
-window.addEventListener("drop",
-function(e) {
-	visualization.audioCtx.resume();
-	e.dataTransfer.dropEffect = "copy";
-	e.stopPropagation();
-	e.preventDefault();
-	var p = false;
-	if (playlist.length === 0) p = true;
-	loadFileList(e.dataTransfer.files);
-	if (p) {
-		playMusic(0);
+
+events(ele_canvas,{
+	click:e=>{
+		ele_ctrls.classList.toggle('hide');
 	}
-},
-false);
+})
+
 /*===========================================*/
 
 
+/*=====================其它事件======================*/
+events(window,{
+	resize:e=>visualization.resetCanvas(),
+	mousedown:visualization.audioCtx.resume(),
+	mouseup:visualization.audioCtx.resume(),
+	load:e=>{
+		if (window.setmode) setmode(0);
+	},
+	dragover:e=>{
+		e.dataTransfer.dropEffect = "copy";
+		e.stopPropagation();
+		e.preventDefault();
+	},
+	drop:e=>{
+		visualization.audioCtx.resume();
+		e.dataTransfer.dropEffect = "copy";
+		e.stopPropagation();
+		e.preventDefault();
+		var p = false;
+		if (playlist.length === 0) p = true;
+		loadFileList(e.dataTransfer.files);
+		if (p) {
+			if(ele_ctrls.classList.contains('micMode')){
+				dom_sourceMusic.click();
+			}
+			playMusic(0);
+		}
+	}
+});
+var ele_playButton = document.querySelector("#control_buttons #play"),
+	ele_pauseButton = document.querySelector("#control_buttons #pause");
+
+events(audio,{
+	ended:()=>nextSong(),//播放结束自动下一首
+	playing:()=>{
+		console.log(123);
+		ele_playButton.style.display='none';
+		ele_pauseButton.style.display='';
+	},
+	pause:()=>{
+		console.log(456);
+		ele_playButton.style.display='';
+		ele_pauseButton.style.display='none';
+	}
+});
+/*===========================================*/
 
 
+requestAnimationFrame(()=>{
+	if(location.hash.match('mode=music')){
+		dom_sourceMusic.click();
+		ele_canvas.click();
+	}else{
+		dom_sourceMic.click();
+		ele_canvas.click();
+	}
+});
 
+(function drawLoop(){
+	requestAnimationFrame/*&&setTimeout*/(()=>{
+		visualization.draw();
+		drawLoop();
+	},50);
+})();
 
 
 /*======================在线人数========================*/
-var online = document.querySelector("#onlinenumber");
+/*var online = document.querySelector("#onlinenumber");
 var OL=new Online('wss://online.luojia.me/online');
 OL.enter('coding:Audio-Visulizations');
 OL.onOnlineChange=function(data){
 	online.innerHTML=Number(data.u);
-}
+}*/
 /*===========================================*/
